@@ -13,6 +13,9 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
+    # Modelos
+    from app.models import Usuario
+
     #Blueprints
     from app.blueprints.public import public_bp
     from app.blueprints.auth import auth_bp
