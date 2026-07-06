@@ -25,7 +25,7 @@ class Usuario(UserMixin, db.Model):
     
     def check_password(self, passwd):
         """ Compara el texto plano con la contraseña hash """
-        return check_password_hash(passwd)
+        return check_password_hash(self.password, passwd)
     
     def es_admin(self):
         return self.rol == "admin"

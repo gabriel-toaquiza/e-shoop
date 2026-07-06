@@ -3,11 +3,11 @@ from . import admin_bp
 from flask_login import login_required
 from .decorators import admin_requerido
 
-@admin_bp.route('/admin')
+@admin_bp.route('/dashboard')
 @login_required
 @admin_requerido
-def admin():
-    return render_template('admin/index.html')
+def dashboard():
+    return render_template('admin/home.html')
 
 @admin_bp.route('/admin/productos')
 def productos():
