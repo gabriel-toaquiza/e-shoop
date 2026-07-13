@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block title %}{{ producto.nombre }}{% endblock %}
+
+{% block content %}
+
+<!-- Miga de pan -->
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('public.home') }}">Inicio</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('public.tienda') }}">Tienda</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('public.tienda', categoria=producto.categoria_id) }}">
+        {{ producto.categoria.nombre }}
+      </a>
+    </li>
+    <li class="breadcrumb-item active">{{ producto.nombre }}</li>
+  </ol>
+</nav>
+
+<!-- Detalle principal -->
+<div class="row mb-5">
+
+  <!-- Imagen -->
+  <div class="col-md-5">
+    {% if producto.imagen %}
+      <img src="{{ url_for('static', filename='img/' + producto.imagen) }}"
+           class="img-fluid rounded shadow"
+           alt="{{ producto.nombre }}">
+    {% else %}
+      <div class="bg-light border rounded d-flex align-items-center
+                  justify-content-center"
+           style="height: 350px;">
+        <span class="text-muted fs-5">Sin imagen disponible</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Información -->
+  <div class="col-md-7">
+
+    <!-- Categoría y nombre -->
+    <span class="badge bg-secondary mb-2">{{ producto.categoria.nombre }}</span>
+    <h2 class="mb-1">{{ producto.nombre }}</h2>
+
+    <!-- Precio -->
+    <h3 class="text-primary fw-bold my-3">
+      ${{ "%.2f"|format(producto.precio) }}
+    </h3>
+
+    <!-- Disponibilidad -->
+    {% if producto.tiene_stock() %}
+      <p class="text-success fw-semibold">
+        ✔ En stock
+        <span class="text-muted fw-normal fs-6">
+          ({{ producto.stock }} disponibles)
+        </span>
+      </p>
+    {% else %}
+      <p class="text-danger fw-semibold">✖ Sin stock</p>
+    {% endif %}
+
+    <!-- Descripción -->
+    {% if producto.descripcion %}
+      <p class="text-muted mt-3">{{ producto.descripcion }}</p>
+    {% endif %}
+
+    <hr>
+
+    <!-- Formulario agregar al carrito -->
+    {% if producto.tiene_stock() %}
+      <form method="POST"
+            action="{{ url_for('public.agregar_carrito', id=producto.id) }}">
+
+        <div class="row align-items-center g-3">
+
+          <!-- Selector de cantidad -->
+          <div class="col-auto">
+            <label class="form-label mb-1">Cantidad</label>
+            <div class="input-group" style="width: 130px;">
+              <button type="button" class="btn btn-outline-secondary"
+                      id="btn-menos">−</button>
+              <input type="number" name="cantidad" id="cantidad"
+                     class="form-control text-center"
+                     value="1" min="1" max="{{ producto.stock }}">
+              <button type="button" class="btn btn-outline-secondary"
+                      id="btn-mas">+</button>
+            </div>
+          </div>
+
+          <!-- Botón agregar -->
+          <div class="col-auto align-self-end">
+            <button type="submit" class="btn btn-primary btn-lg">
+              🛒 Agregar al carrito
+            </button>
+          </div>
+
+        </div>
+      </form>
+
+    {% else %}
+      <button class="btn btn-secondary btn-lg" disabled>
+        Sin stock disponible
+      </button>
+    {% endif %}
+
+    <!-- Botón volver -->
+    <div class="mt-3">
+      <a href="{{ url_for('public.tienda') }}"
+         class="btn btn-outline-secondary btn-sm">
+        ← Volver a la tienda
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- Productos relacionados -->
+{% if relacionados %}
+<hr>
+<h4 class="mb-4">Productos relacionados</h4>
+<div class="row row-cols-1 row-cols-md-4 g-4">
+  {% for r in relacionados %}
+  <div class="col">
+    <div class="card h-100 shadow-sm">
+
+      {% if r.imagen %}
+        <img src="{{ url_for('static', filename='img/' + r.imagen) }}"
+             class="card-img-top"
+             style="height: 160px; object-fit: cover;"
+             alt="{{ r.nombre }}">
+      {% else %}
+        <div class="bg-light text-center text-muted py-4">
+          Sin imagen
+        </div>
+      {% endif %}
+
+      <div class="card-body">
+        <h6 class="card-title">{{ r.nombre }}</h6>
+        <p class="text-primary fw-bold mb-1">
+          ${{ "%.2f"|format(r.precio) }}
+        </p>
+        {% if r.tiene_stock() %}
+          <small class="text-success">En stock</small>
+        {% else %}
+          <small class="text-danger">Sin stock</small>
+        {% endif %}
+      </div>
+
+      <div class="card-footer d-grid">
+        <a href="{{ url_for('public.detalle_producto', id=r.id) }}"
+           class="btn btn-sm btn-outline-primary">
+          Ver producto
+        </a>
+      </div>
+
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+
+{% block scripts %}
+<!-- Control de cantidad con jQuery -->
+<script>
+  const input    = document.getElementById('cantidad');
+  const btnMenos = document.getElementById('btn-menos');
+  const btnMas   = document.getElementById('btn-mas');
+  const stock    = {{ producto.stock }};
+
+  btnMenos.addEventListener('click', () => {
+    if (parseInt(input.value) > 1) {
+      input.value = parseInt(input.value) - 1;
+    }
+  });
+
+  btnMas.addEventListener('click', () => {
+    if (parseInt(input.value) < stock) {
+      input.value = parseInt(input.value) + 1;
+    }
+  });
+
+  // Validar si escriben manualmente
+  input.addEventListener('change', () => {
+    if (parseInt(input.value) < 1)     input.value = 1;
+    if (parseInt(input.value) > stock) input.value = stock;
+  });
+</script>
+{% endblock %}

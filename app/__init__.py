@@ -17,7 +17,7 @@ def create_app():
     login_manager.init_app(app)
 
     # Configuración de Login manager
-    login_manager.login_view = 'auth,login'
+    login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Inicia sesión para continuar'
     login_manager.login_message_category = 'warning'
 
