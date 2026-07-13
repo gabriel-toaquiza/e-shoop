@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Pago{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Resumen del pedido -->
+  <div class="col-md-7">
+    <h4 class="mb-3">Resumen del pedido</h4>
+    <table class="table table-sm">
+      <thead><tr><th>Producto</th><th>Cant.</th><th>Subtotal</th></tr></thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.producto.nombre }}</td>
+          <td>{{ item.cantidad }}</td>
+          <td>${{ "%.2f"|format(item.subtotal) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fw-bold">
+          <td colspan="2" class="text-end">Total:</td>
+          <td>${{ "%.2f"|format(total) }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Formulario de entrega -->
+  <div class="col-md-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title mb-3">Datos de entrega</h4>
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Dirección de entrega *</label>
+            <textarea name="direccion" class="form-control"
+                      rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notas adicionales</label>
+            <textarea name="notas" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success btn-lg">
+              ✔ Confirmar pedido
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

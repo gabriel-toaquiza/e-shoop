@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Tienda{% endblock %}
+
+{% block content %}
+<div class="row">
+
+  <!-- Sidebar filtros -->
+  <div class="col-md-3">
+    <div class="card mb-3">
+      <div class="card-header fw-bold">Buscar</div>
+      <div class="card-body">
+        <form method="GET">
+          <input type="text" name="q" value="{{ busqueda }}"
+                 class="form-control mb-2" placeholder="Nombre del producto...">
+          <button class="btn btn-primary w-100">Buscar</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header fw-bold">Categorías</div>
+      <div class="list-group list-group-flush">
+        <a href="{{ url_for('public.tienda') }}"
+           class="list-group-item list-group-item-action
+                  {% if not categoria_id %}active{% endif %}">
+          Todas
+        </a>
+        {% for cat in categorias %}
+        <a href="{{ url_for('public.tienda', categoria=cat.id) }}"
+           class="list-group-item list-group-item-action
+                  {% if categoria_id == cat.id %}active{% endif %}">
+          {{ cat.nombre }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Grilla de productos -->
+  <div class="col-md-9">
+    <div class="d-flex justify-content-between mb-3">
+      <h5>{{ productos.total }} producto(s) encontrado(s)</h5>
+    </div>
+
+    {% if productos.items %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+      {% for p in productos.items %}
+      <div class="col">
+        <div class="card h-100 shadow-sm">
+          {% if p.imagen %}
+            <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
+                 class="card-img-top" style="height:160px; object-fit:cover;">
+          {% else %}
+            <div class="bg-light text-center py-4 text-muted">Sin imagen</div>
+          {% endif %}
+          <div class="card-body">
+            <h6 class="card-title">{{ p.nombre }}</h6>
+            <span class="badge bg-secondary">{{ p.categoria.nombre }}</span>
+            <p class="text-primary fw-bold mt-2">${{ "%.2f"|format(p.precio) }}</p>
+            <small class="text-muted">Stock: {{ p.stock }}</small>
+          </div>
+          <div class="card-footer d-grid gap-2">
+            <a href="{{ url_for('public.detalle_producto', id=p.id) }}"
+               class="btn btn-sm btn-outline-primary">Ver detalle</a>
+            <form method="POST"
+                  action="{{ url_for('public.agregar_carrito', id=p.id) }}">
+              <input type="hidden" name="cantidad" value="1">
+              <button class="btn btn-sm btn-primary w-100"
+                      {% if not p.tiene_stock() %}disabled{% endif %}>
+                🛒 Agregar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        {% if productos.has_prev %}
+        <li class="page-item">
+          <a class="page-link"
+             href="{{ url_for('public.tienda', pagina=productos.prev_num,
+                             categoria=categoria_id, q=busqueda) }}">
+            Anterior
+          </a>
+        </li>
+        {% endif %}
+        {% for num in productos.iter_pages() %}
+          {% if num %}
+          <li class="page-item {% if num == productos.page %}active{% endif %}">
+            <a class="page-link"
+               href="{{ url_for('public.tienda', pagina=num,
+                               categoria=categoria_id, q=busqueda) }}">
+              {{ num }}
+            </a>
+          </li>
+          {% endif %}
+        {% endfor %}
+        {% if productos.has_next %}
+        <li class="page-item">
+          <a class="page-link"
+             href="{{ url_for('public.tienda', pagina=productos.next_num,
+                             categoria=categoria_id, q=busqueda) }}">
+            Siguiente
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+
+    {% else %}
+    <div class="alert alert-info">No se encontraron productos.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

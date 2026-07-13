@@ -1,6 +1,53 @@
-<!-- home.html-->
- {% extends 'base.html' %}
+{% extends 'base.html' %}
+{% block title %}Inicio – e-Shop{% endblock %}
 
- {% block content %}
-    <h1>Bienvenidos a la tienda</h1>
+{% block content %}
+<!-- Hero -->
+<div class="p-5 mb-4 bg-dark text-white rounded-3">
+  <div class="container-fluid py-3">
+    <h1 class="display-5 fw-bold">Bienvenido a e-Shop</h1>
+    <p class="col-md-8 fs-4">Encuentra los mejores productos al mejor precio.</p>
+    <a href="{{ url_for('public.tienda') }}" class="btn btn-primary btn-lg">
+      Ver tienda
+    </a>
+  </div>
+</div>
+
+<!-- Categorías -->
+<h4 class="mb-3">Categorías</h4>
+<div class="row g-2 mb-4">
+  {% for cat in categorias %}
+  <div class="col-auto">
+    <a href="{{ url_for('public.tienda', categoria=cat.id) }}"
+       class="btn btn-outline-secondary">
+      {{ cat.nombre }}
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Productos destacados -->
+<h4 class="mb-3">Productos destacados</h4>
+<div class="row row-cols-1 row-cols-md-4 g-4">
+  {% for p in productos %}
+  <div class="col">
+    <div class="card h-100 shadow-sm">
+      {% if p.imagen %}
+        <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
+             class="card-img-top" style="height:180px; object-fit:cover;">
+      {% else %}
+        <div class="bg-secondary text-white text-center py-5">Sin imagen</div>
+      {% endif %}
+      <div class="card-body">
+        <h6 class="card-title">{{ p.nombre }}</h6>
+        <p class="text-primary fw-bold">${{ "%.2f"|format(p.precio) }}</p>
+      </div>
+      <div class="card-footer d-grid">
+        <a href="{{ url_for('public.detalle_producto', id=p.id) }}"
+           class="btn btn-sm btn-outline-primary">Ver producto</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
 {% endblock %}
