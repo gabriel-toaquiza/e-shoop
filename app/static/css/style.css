@@ -1,0 +1,150 @@
+/* ============================================================
+   Estilos propios derivados de Bootstrap 5
+   Paleta:  Principal #5B1A2E · Secundario #FAD6EF · Fondo #FFFDF9
+   ============================================================ */
+
+:root {
+    --marca-principal:        #5B1A2E;
+    --marca-principal-oscuro: #43121f;
+    --marca-secundario:       #FAD6EF;
+    --marca-fondo:            #FFFDF9;
+
+    /* Sobrescribe el color primario de Bootstrap */
+    --bs-primary:      #5B1A2E;
+    --bs-primary-rgb:  91, 26, 46;
+}
+
+/* ---------- Base ---------- */
+body {
+    background-color: var(--marca-fondo);
+    color: #2b2b2b;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ---------- Navbar clara con marca ---------- */
+.navbar.bg-dark {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #f1e6ea;
+    box-shadow: 0 2px 10px rgba(91, 26, 46, .05);
+}
+.navbar.bg-dark .navbar-brand,
+.navbar.bg-dark .nav-link {
+    color: var(--marca-principal) !important;
+}
+.navbar.bg-dark .nav-link:hover {
+    color: var(--marca-principal-oscuro) !important;
+}
+.navbar-brand {
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* ---------- Hero (bloque .bg-dark del home) ---------- */
+.bg-dark {
+    background: linear-gradient(135deg, #5B1A2E, #43121f) !important;
+}
+.rounded-3 {
+    border-radius: 1.25rem !important;
+}
+
+/* ---------- Botones tipo "pill" ---------- */
+.btn {
+    border-radius: 50rem;
+    font-weight: 500;
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+}
+.btn-primary {
+    --bs-btn-bg:                    var(--marca-principal);
+    --bs-btn-border-color:          var(--marca-principal);
+    --bs-btn-hover-bg:              var(--marca-principal-oscuro);
+    --bs-btn-hover-border-color:    var(--marca-principal-oscuro);
+    --bs-btn-active-bg:             var(--marca-principal-oscuro);
+    --bs-btn-active-border-color:   var(--marca-principal-oscuro);
+    --bs-btn-disabled-bg:           var(--marca-principal);
+    --bs-btn-disabled-border-color: var(--marca-principal);
+}
+.btn-outline-primary {
+    --bs-btn-color:                 var(--marca-principal);
+    --bs-btn-border-color:          var(--marca-principal);
+    --bs-btn-hover-bg:              var(--marca-principal);
+    --bs-btn-hover-border-color:    var(--marca-principal);
+    --bs-btn-active-bg:             var(--marca-principal);
+    --bs-btn-active-border-color:   var(--marca-principal);
+}
+
+/* ---------- Tarjetas ---------- */
+.card {
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(91, 26, 46, .06);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 28px rgba(91, 26, 46, .12);
+}
+.card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #f3e9ec;
+    font-weight: 600;
+}
+
+/* ---------- Precio (las plantillas usan .text-primary) ---------- */
+.text-primary {
+    color: var(--marca-principal) !important;
+}
+
+/* ---------- Badges ---------- */
+.badge {
+    border-radius: 50rem;
+    font-weight: 500;
+    padding: .4em .75em;
+}
+.badge.bg-secondary {
+    background-color: var(--marca-secundario) !important;
+    color: var(--marca-principal) !important;
+}
+
+/* ---------- Formularios ---------- */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--marca-principal);
+    box-shadow: 0 0 0 .2rem rgba(91, 26, 46, .15);
+}
+
+/* ---------- Lista de categorías (tienda) ---------- */
+.list-group-item.active {
+    background-color: var(--marca-principal);
+    border-color: var(--marca-principal);
+}
+
+/* ---------- Paginación ---------- */
+.page-link {
+    color: var(--marca-principal);
+}
+.page-item.active .page-link {
+    background-color: var(--marca-principal);
+    border-color: var(--marca-principal);
+}
+
+/* ---------- Alertas y tablas ---------- */
+.alert {
+    border-radius: .85rem;
+    border: none;
+}
+.table > thead {
+    color: var(--marca-principal);
+}
+
+/* ---------- Footer (para cuando se agregue) ---------- */
+footer {
+    background-color: var(--marca-principal);
+    color: #ffffff;
+}
+footer a {
+    color: var(--marca-secundario);
+    text-decoration: none;
+}
