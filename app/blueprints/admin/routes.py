@@ -1,10 +1,11 @@
-from flask import render_template
+from flask import render_template, redirect, url_for, flash
 from flask_login import login_required
 from sqlalchemy import func
 from app import db
 from app.models import Usuario, Categoria, Producto, Pedido
 from . import admin_bp
 from .decorators import admin_requerido
+from .forms import FormCategoria
 
 # Umbral para considerar un producto con "bajo stock"
 STOCK_MINIMO = 5
@@ -50,6 +51,63 @@ def dashboard():
                            total_productos=total_productos,
                            total_categorias=total_categorias,
                            ultimos_pedidos=ultimos_pedidos)
+
+
+# ── CRUD CATEGORÍAS ───────────────────────────────────────────────
+@admin_bp.route('/categorias')
+@login_required
+@admin_requerido
+def categorias():
+    categorias = Categoria.query.order_by(Categoria.nombre).all()
+    return render_template('admin/categorias/listar.html', categorias=categorias)
+
+
+@admin_bp.route('/categorias/crear', methods=['GET', 'POST'])
+@login_required
+@admin_requerido
+def crear_categoria():
+    form = FormCategoria()
+    if form.validate_on_submit():
+        categoria = Categoria(
+            nombre      = form.nombre.data,
+            descripcion = form.descripcion.data,
+            activa      = form.activa.data
+        )
+        db.session.add(categoria)
+        db.session.commit()
+        flash('Categoría creada correctamente.', 'success')
+        return redirect(url_for('admin.categorias'))
+    return render_template('admin/categorias/form.html',
+                           form=form, titulo='Nueva categoría')
+
+
+@admin_bp.route('/categorias/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_requerido
+def editar_categoria(id):
+    categoria = Categoria.query.get_or_404(id)
+    form = FormCategoria(categoria_original=categoria, obj=categoria)
+    if form.validate_on_submit():
+        categoria.nombre      = form.nombre.data
+        categoria.descripcion = form.descripcion.data
+        categoria.activa      = form.activa.data
+        db.session.commit()
+        flash('Categoría actualizada correctamente.', 'success')
+        return redirect(url_for('admin.categorias'))
+    return render_template('admin/categorias/form.html',
+                           form=form, titulo='Editar categoría')
+
+
+@admin_bp.route('/categorias/<int:id>/toggle', methods=['POST'])
+@login_required
+@admin_requerido
+def toggle_categoria(id):
+    categoria = Categoria.query.get_or_404(id)
+    categoria.activa = not categoria.activa
+    db.session.commit()
+    estado = 'activada' if categoria.activa else 'desactivada'
+    flash(f'Categoría "{categoria.nombre}" {estado}.', 'info')
+    return redirect(url_for('admin.categorias'))
 
 
 # ── RUTAS PENDIENTES (se construyen en los siguientes puntos) ─────
