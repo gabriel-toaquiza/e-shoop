@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Pedido #{{ pedido.id }}{% endblock %}
+
+{% block content %}
+{% set colores = {'pendiente':'warning','pagado':'info','enviado':'primary','entregado':'success','cancelado':'danger'} %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Pedido #{{ pedido.id }}</h2>
+    <a href="{{ url_for('admin.pedidos') }}" class="btn btn-outline-secondary btn-sm">← Pedidos</a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <p class="mb-1"><strong>Cliente:</strong> {{ pedido.cliente.nombre if pedido.cliente else '—' }}</p>
+        <p class="mb-1"><strong>Email:</strong> {{ pedido.cliente.email if pedido.cliente else '—' }}</p>
+        <p class="mb-1"><strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha else '—' }}</p>
+    </div>
+    <div class="col-md-6">
+        <p class="mb-1"><strong>Estado:</strong>
+            <span class="badge bg-{{ colores.get(pedido.estado, 'secondary') }}">{{ pedido.estado }}</span>
+        </p>
+        <p class="mb-1"><strong>Dirección:</strong> {{ pedido.direccion or '—' }}</p>
+        <p class="mb-1"><strong>Notas:</strong> {{ pedido.notas or '—' }}</p>
+    </div>
+</div>
+
+<h5>Productos</h5>
+<table class="table align-middle">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th class="text-center">Cantidad</th>
+            <th class="text-end">Precio unit.</th>
+            <th class="text-end">Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in pedido.detalles %}
+        <tr>
+            <td>{{ d.producto.nombre if d.producto else '—' }}</td>
+            <td class="text-center">{{ d.cantidad }}</td>
+            <td class="text-end">${{ '%.2f'|format(d.precio_unitario) }}</td>
+            <td class="text-end">${{ '%.2f'|format(d.subtotal()) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="3" class="text-end">Total</th>
+            <th class="text-end">${{ '%.2f'|format(pedido.total) }}</th>
+        </tr>
+    </tfoot>
+</table>
+
+<!-- Acciones de estado -->
+<div class="d-flex gap-2 mt-3">
+    {% if pedido.estado in ['pendiente','pagado','enviado'] %}
+    <form action="{{ url_for('admin.avanzar_pedido', id=pedido.id) }}"
+          method="POST"
+          onsubmit="return confirm('¿Avanzar el pedido al siguiente estado?');">
+        <button class="btn btn-success">Avanzar estado ▸</button>
+    </form>
+    {% endif %}
+    {% if pedido.estado not in ('entregado','cancelado') %}
+    <form action="{{ url_for('admin.cancelar_pedido', id=pedido.id) }}"
+          method="POST"
+          onsubmit="return confirm('¿Cancelar este pedido?');">
+        <button class="btn btn-outline-danger">Cancelar pedido</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

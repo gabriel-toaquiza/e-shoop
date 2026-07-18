@@ -1,6 +1,6 @@
 import os
 import uuid
-from flask import render_template, redirect, url_for, flash, current_app
+from flask import render_template, redirect, url_for, flash, current_app, request
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from flask_login import login_required
@@ -16,6 +16,9 @@ STOCK_MINIMO = 5
 
 # Estados que cuentan como una venta concretada
 ESTADOS_VENTA = ('pagado', 'enviado', 'entregado')
+
+# Flujo ordenado de estados de un pedido
+FLUJO_PEDIDO = ['pendiente', 'pagado', 'enviado', 'entregado']
 
 
 # ── HELPERS DE IMAGEN ─────────────────────────────────────────────
@@ -260,7 +263,56 @@ def toggle_cliente(id):
     return redirect(url_for('admin.clientes'))
 
 
-# ── RUTAS PENDIENTES (se construyen en los siguientes puntos) ─────
-@admin_bp.route('/admin/pedidos')
+# ── GESTIÓN DE PEDIDOS ────────────────────────────────────────────
+@admin_bp.route('/pedidos')
+@login_required
+@admin_requerido
 def pedidos():
-    return render_template('admin/pedidos.html')
+    estado = request.args.get('estado', '').strip()
+    query = Pedido.query
+    if estado:
+        query = query.filter_by(estado=estado)
+    pedidos = query.order_by(Pedido.fecha.desc()).all()
+    return render_template('admin/pedidos/listar.html',
+                           pedidos=pedidos, estado=estado, flujo=FLUJO_PEDIDO)
+
+
+@admin_bp.route('/pedidos/<int:id>')
+@login_required
+@admin_requerido
+def detalle_pedido(id):
+    pedido = Pedido.query.get_or_404(id)
+    return render_template('admin/pedidos/detalle.html', pedido=pedido)
+
+
+@admin_bp.route('/pedidos/<int:id>/avanzar', methods=['POST'])
+@login_required
+@admin_requerido
+def avanzar_pedido(id):
+    pedido = Pedido.query.get_or_404(id)
+    if pedido.estado not in FLUJO_PEDIDO:
+        flash('Este pedido no se puede avanzar.', 'warning')
+        return redirect(request.referrer or url_for('admin.pedidos'))
+
+    indice = FLUJO_PEDIDO.index(pedido.estado)
+    if indice >= len(FLUJO_PEDIDO) - 1:
+        flash(f'El pedido #{pedido.id} ya está entregado.', 'info')
+    else:
+        pedido.estado = FLUJO_PEDIDO[indice + 1]
+        db.session.commit()
+        flash(f'Pedido #{pedido.id} actualizado a "{pedido.estado}".', 'success')
+    return redirect(request.referrer or url_for('admin.pedidos'))
+
+
+@admin_bp.route('/pedidos/<int:id>/cancelar', methods=['POST'])
+@login_required
+@admin_requerido
+def cancelar_pedido(id):
+    pedido = Pedido.query.get_or_404(id)
+    if pedido.estado in ('entregado', 'cancelado'):
+        flash('Este pedido ya no se puede cancelar.', 'warning')
+    else:
+        pedido.estado = 'cancelado'
+        db.session.commit()
+        flash(f'Pedido #{pedido.id} cancelado.', 'info')
+    return redirect(request.referrer or url_for('admin.pedidos'))
