@@ -11,3 +11,6 @@ class Config:
         f"@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Tamaño máximo del cuerpo de la petición (red de seguridad para subidas): 5 MB
+    MAX_CONTENT_LENGTH = 5 * 1024 * 1024

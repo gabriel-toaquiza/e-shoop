@@ -1,17 +1,47 @@
-from flask import render_template, redirect, url_for, flash
+import os
+import uuid
+from flask import render_template, redirect, url_for, flash, current_app
+from werkzeug.utils import secure_filename
+from werkzeug.datastructures import FileStorage
 from flask_login import login_required
 from sqlalchemy import func
 from app import db
 from app.models import Usuario, Categoria, Producto, Pedido
 from . import admin_bp
 from .decorators import admin_requerido
-from .forms import FormCategoria
+from .forms import FormCategoria, FormProducto
 
 # Umbral para considerar un producto con "bajo stock"
 STOCK_MINIMO = 5
 
 # Estados que cuentan como una venta concretada
 ESTADOS_VENTA = ('pagado', 'enviado', 'entregado')
+
+
+# ── HELPERS DE IMAGEN ─────────────────────────────────────────────
+def guardar_imagen(archivo):
+    """Guarda la imagen subida en static/img con un nombre único y lo devuelve."""
+    nombre_seguro = secure_filename(archivo.filename)
+    extension     = os.path.splitext(nombre_seguro)[1].lower()
+    nombre_unico  = f"{uuid.uuid4().hex}{extension}"
+    carpeta       = os.path.join(current_app.root_path, 'static', 'img')
+    os.makedirs(carpeta, exist_ok=True)
+    archivo.save(os.path.join(carpeta, nombre_unico))
+    return nombre_unico
+
+
+def eliminar_imagen(nombre):
+    """Elimina un archivo de static/img si existe (para no dejar huérfanos)."""
+    if not nombre:
+        return
+    ruta = os.path.join(current_app.root_path, 'static', 'img', nombre)
+    if os.path.exists(ruta):
+        os.remove(ruta)
+
+
+def hay_imagen_nueva(campo):
+    """True solo si el campo trae un archivo realmente subido (no un nombre previo)."""
+    return isinstance(campo.data, FileStorage) and bool(campo.data.filename)
 
 
 # ── DASHBOARD ─────────────────────────────────────────────────────
@@ -110,11 +140,101 @@ def toggle_categoria(id):
     return redirect(url_for('admin.categorias'))
 
 
-# ── RUTAS PENDIENTES (se construyen en los siguientes puntos) ─────
-@admin_bp.route('/admin/productos')
+# ── CRUD PRODUCTOS ────────────────────────────────────────────────
+@admin_bp.route('/productos')
+@login_required
+@admin_requerido
 def productos():
-    return render_template('admin/productos.html')
+    productos = Producto.query.order_by(Producto.nombre).all()
+    return render_template('admin/productos/listar.html',
+                           productos=productos, stock_minimo=STOCK_MINIMO)
 
+
+@admin_bp.route('/productos/crear', methods=['GET', 'POST'])
+@login_required
+@admin_requerido
+def crear_producto():
+    categorias_activas = Categoria.query.filter_by(activa=True).order_by(Categoria.nombre).all()
+    if not categorias_activas:
+        flash('Primero debes crear al menos una categoría activa.', 'warning')
+        return redirect(url_for('admin.categorias'))
+
+    form = FormProducto()
+    form.categoria_id.choices = [(c.id, c.nombre) for c in categorias_activas]
+
+    if form.validate_on_submit():
+        producto = Producto(
+            nombre       = form.nombre.data,
+            descripcion  = form.descripcion.data,
+            precio       = form.precio.data,
+            stock        = form.stock.data or 0,
+            categoria_id = form.categoria_id.data,
+            activo       = form.activo.data
+        )
+        if hay_imagen_nueva(form.imagen):
+            producto.imagen = guardar_imagen(form.imagen.data)
+
+        db.session.add(producto)
+        db.session.commit()
+        flash('Producto creado correctamente.', 'success')
+        return redirect(url_for('admin.productos'))
+
+    return render_template('admin/productos/form.html',
+                           form=form, titulo='Nuevo producto')
+
+
+@admin_bp.route('/productos/editar/<int:id>', methods=['GET', 'POST'])
+@login_required
+@admin_requerido
+def editar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    categorias_activas = Categoria.query.filter_by(activa=True).order_by(Categoria.nombre).all()
+
+    form = FormProducto(obj=producto)
+    choices = [(c.id, c.nombre) for c in categorias_activas]
+    # Mantener la categoría actual en las opciones aunque esté inactiva
+    if producto.categoria and producto.categoria_id not in [c.id for c in categorias_activas]:
+        choices.insert(0, (producto.categoria_id, producto.categoria.nombre + ' (inactiva)'))
+    form.categoria_id.choices = choices
+
+    if form.validate_on_submit():
+        producto.nombre       = form.nombre.data
+        producto.descripcion  = form.descripcion.data
+        producto.precio       = form.precio.data
+        producto.stock        = form.stock.data or 0
+        producto.categoria_id = form.categoria_id.data
+        producto.activo       = form.activo.data
+
+        if hay_imagen_nueva(form.imagen):
+            # Se subió una nueva: reemplaza la anterior
+            eliminar_imagen(producto.imagen)
+            producto.imagen = guardar_imagen(form.imagen.data)
+        elif form.quitar_imagen.data and producto.imagen:
+            # Se pidió quitar la imagen y dejar el producto sin foto
+            eliminar_imagen(producto.imagen)
+            producto.imagen = None
+
+        db.session.commit()
+        flash('Producto actualizado correctamente.', 'success')
+        return redirect(url_for('admin.productos'))
+
+    return render_template('admin/productos/form.html',
+                           form=form, titulo='Editar producto', producto=producto)
+
+
+@admin_bp.route('/productos/<int:id>/toggle', methods=['POST'])
+@login_required
+@admin_requerido
+def toggle_producto(id):
+    producto = Producto.query.get_or_404(id)
+    producto.activo = not producto.activo
+    db.session.commit()
+    estado = 'activado' if producto.activo else 'desactivado'
+    flash(f'Producto "{producto.nombre}" {estado}.', 'info')
+    return redirect(url_for('admin.productos'))
+
+
+# ── RUTAS PENDIENTES (se construyen en los siguientes puntos) ─────
 @admin_bp.route('/admin/clientes')
 def clientes():
     return render_template('admin/clientes.html')

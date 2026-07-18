@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, BooleanField, SubmitField
-from wtforms.validators import DataRequired, Length
-from wtforms.validators import ValidationError
+from flask_wtf.file import FileField, FileAllowed, FileSize
+from wtforms import (StringField, TextAreaField, BooleanField, SubmitField,
+                     DecimalField, IntegerField, SelectField)
+from wtforms.validators import (DataRequired, Length, NumberRange, Optional,
+                                ValidationError)
 from app.models import Categoria
 
 
@@ -27,3 +29,34 @@ class FormCategoria(FlaskForm):
         if categoria and (self.categoria_original is None
                           or categoria.id != self.categoria_original.id):
             raise ValidationError('Ya existe una categoría con ese nombre.')
+
+
+class FormProducto(FlaskForm):
+    nombre       = StringField('Nombre',
+                   validators=[DataRequired(), Length(min=2, max=150)])
+
+    descripcion  = TextAreaField('Descripción',
+                   validators=[Optional(), Length(max=1000)])
+
+    precio       = DecimalField('Precio', places=2,
+                   validators=[DataRequired(),
+                               NumberRange(min=0, message='El precio no puede ser negativo.')])
+
+    stock        = IntegerField('Stock', default=0,
+                   validators=[Optional(),
+                               NumberRange(min=0, message='El stock no puede ser negativo.')])
+
+    categoria_id = SelectField('Categoría', coerce=int,
+                   validators=[DataRequired()])
+
+    imagen       = FileField('Imagen',
+                   validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'webp'],
+                               'Solo se permiten imágenes (jpg, png, gif, webp).'),
+                               FileSize(max_size=2 * 1024 * 1024,
+                               message='La imagen no debe superar los 2 MB.')])
+
+    quitar_imagen = BooleanField('Eliminar la imagen actual')
+
+    activo       = BooleanField('Activo', default=True)
+
+    submit       = SubmitField('Guardar')
