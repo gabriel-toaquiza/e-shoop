@@ -50,8 +50,8 @@ class FormProducto(FlaskForm):
                    validators=[DataRequired()])
 
     imagen       = FileField('Imagen',
-                   validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'webp'],
-                               'Solo se permiten imágenes (jpg, png, gif, webp).'),
+                   validators=[FileAllowed(['jpg', 'jpeg', 'webp'],
+                               'Solo se permiten imágenes jpg, jpeg o webp.'),
                                FileSize(max_size=2 * 1024 * 1024,
                                message='La imagen no debe superar los 2 MB.')])
 
