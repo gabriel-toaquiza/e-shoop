@@ -1,53 +1,121 @@
 {% extends 'base.html' %}
-{% block title %}Inicio – e-Shop{% endblock %}
+{% block title %}Inicio – Manualidades{% endblock %}
 
 {% block content %}
-<!-- Hero -->
-<div class="p-5 mb-4 bg-dark text-white rounded-3">
-  <div class="container-fluid py-3">
-    <h1 class="display-5 fw-bold">Bienvenido a e-Shop</h1>
-    <p class="col-md-8 fs-4">Encuentra los mejores productos al mejor precio.</p>
-    <a href="{{ url_for('public.tienda') }}" class="btn btn-primary btn-lg">
-      Ver tienda
-    </a>
+
+<!-- ===== HERO ===== -->
+<div class="bg-dark text-white rounded-3 p-5 mb-5">
+  <div class="row align-items-center">
+    <div class="col-lg-7">
+      <h1 class="display-4 fw-bold mb-3">Hecho a mano,<br>hecho con amor</h1>
+      <p class="fs-5 mb-4 opacity-75">
+        Descubre totebags, cuadros y decoraciones únicas para darle
+        tu toque personal a cada espacio.
+      </p>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{{ url_for('public.tienda') }}" class="btn btn-light btn-lg">Ver tienda →</a>
+        <a href="#categorias" class="btn btn-outline-light btn-lg">Categorías</a>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- Categorías -->
-<h4 class="mb-3">Categorías</h4>
-<div class="row g-2 mb-4">
-  {% for cat in categorias %}
-  <div class="col-auto">
-    <a href="{{ url_for('public.tienda', categoria=cat.id) }}"
-       class="btn btn-outline-secondary">
-      {{ cat.nombre }}
-    </a>
+<!-- ===== BENEFICIOS ===== -->
+<div class="row text-center g-4 mb-5">
+  <div class="col-6 col-md-3">
+    <div class="fs-1">🧵</div>
+    <h6 class="fw-bold mb-1">Hecho a mano</h6>
+    <p class="text-muted small mb-0">Cada pieza es única y artesanal.</p>
   </div>
+  <div class="col-6 col-md-3">
+    <div class="fs-1">🚚</div>
+    <h6 class="fw-bold mb-1">Envío a todo el país</h6>
+    <p class="text-muted small mb-0">Recíbelo donde estés.</p>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="fs-1">🔒</div>
+    <h6 class="fw-bold mb-1">Pago seguro</h6>
+    <p class="text-muted small mb-0">Tus datos siempre protegidos.</p>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="fs-1">✨</div>
+    <h6 class="fw-bold mb-1">Materiales de calidad</h6>
+    <p class="text-muted small mb-0">Seleccionados con cuidado.</p>
+  </div>
+</div>
+
+<!-- ===== PROMOS ===== -->
+<div class="row g-4 mb-5">
+  <div class="col-md-6">
+    <div class="card text-white h-100" style="background:linear-gradient(135deg,#5B1A2E,#8a2c48);">
+      <div class="card-body p-4 d-flex flex-column justify-content-center" style="min-height:180px;">
+        <h3 class="fw-bold">Decora tu hogar</h3>
+        <p class="mb-3 opacity-75">Cuadros y decoraciones que dan vida a cualquier rincón.</p>
+        <a href="{{ url_for('public.tienda') }}" class="btn btn-light align-self-start">Ver más →</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100" style="background:linear-gradient(135deg,#FAD6EF,#f7c1e6);">
+      <div class="card-body p-4 d-flex flex-column justify-content-center" style="min-height:180px;">
+        <h3 class="fw-bold" style="color:#5B1A2E;">Lleva tu totebag</h3>
+        <p class="mb-3" style="color:#5B1A2E;">Prácticas, resistentes y con diseños originales.</p>
+        <a href="{{ url_for('public.tienda') }}" class="btn btn-primary align-self-start">Ver más →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CATEGORÍAS ===== -->
+<h4 class="fw-bold mb-3" id="categorias">Categorías</h4>
+<div class="d-flex flex-wrap gap-2 mb-5">
+  {% for cat in categorias %}
+  <a href="{{ url_for('public.tienda', categoria=cat.id) }}"
+     class="btn btn-outline-primary rounded-pill">{{ cat.nombre }}</a>
+  {% else %}
+  <p class="text-muted">Aún no hay categorías.</p>
   {% endfor %}
 </div>
 
-<!-- Productos destacados -->
-<h4 class="mb-3">Productos destacados</h4>
-<div class="row row-cols-1 row-cols-md-4 g-4">
+<!-- ===== MÁS VENDIDOS ===== -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0">Más vendidos</h4>
+  <a href="{{ url_for('public.tienda') }}" class="text-decoration-none">Ver todo →</a>
+</div>
+
+{% if productos %}
+<div class="row row-cols-2 row-cols-md-4 g-4">
   {% for p in productos %}
   <div class="col">
-    <div class="card h-100 shadow-sm">
-      {% if p.imagen %}
-        <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
-             class="card-img-top" style="height:180px; object-fit:cover;">
-      {% else %}
-        <div class="bg-secondary text-white text-center py-5">Sin imagen</div>
-      {% endif %}
+    <div class="card h-100">
+      <a href="{{ url_for('public.detalle_producto', id=p.id) }}">
+        {% if p.imagen %}
+          <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
+               class="card-img-top" style="height:190px;object-fit:cover;" alt="{{ p.nombre }}">
+        {% else %}
+          <div class="d-flex align-items-center justify-content-center text-muted"
+               style="height:190px;background:#f3eef0;">Sin imagen</div>
+        {% endif %}
+      </a>
       <div class="card-body">
-        <h6 class="card-title">{{ p.nombre }}</h6>
-        <p class="text-primary fw-bold">${{ "%.2f"|format(p.precio) }}</p>
+        <h6 class="card-title mb-1">{{ p.nombre }}</h6>
+        {% if p.categoria %}<span class="badge bg-secondary mb-2">{{ p.categoria.nombre }}</span>{% endif %}
+        <p class="text-primary fw-bold fs-5 mb-0">${{ "%.2f"|format(p.precio) }}</p>
       </div>
-      <div class="card-footer d-grid">
-        <a href="{{ url_for('public.detalle_producto', id=p.id) }}"
-           class="btn btn-sm btn-outline-primary">Ver producto</a>
+      <div class="card-footer bg-transparent border-0 pt-0 d-grid">
+        <form method="POST" action="{{ url_for('public.agregar_carrito', id=p.id) }}">
+          <input type="hidden" name="cantidad" value="1">
+          <button class="btn btn-primary btn-sm w-100" {% if not p.tiene_stock() %}disabled{% endif %}>
+            {% if p.tiene_stock() %}🛒 Agregar{% else %}Sin stock{% endif %}
+          </button>
+        </form>
       </div>
     </div>
   </div>
   {% endfor %}
 </div>
+{% else %}
+<p class="text-muted">Todavía no hay productos disponibles.</p>
+{% endif %}
+
 {% endblock %}
