@@ -23,16 +23,15 @@ body {
 
 /* ---------- Navbar clara con marca ---------- */
 .navbar.bg-dark {
-    background-color: #ffffff !important;
-    border-bottom: 1px solid #f1e6ea;
-    box-shadow: 0 2px 10px rgba(91, 26, 46, .05);
+    background-color: var(--marca-principal) !important;
+    box-shadow: 0 2px 12px rgba(91, 26, 46, .2);
 }
 .navbar.bg-dark .navbar-brand,
 .navbar.bg-dark .nav-link {
-    color: var(--marca-principal) !important;
+    color: #ffffff !important;
 }
 .navbar.bg-dark .nav-link:hover {
-    color: var(--marca-principal-oscuro) !important;
+    color: var(--marca-secundario) !important;
 }
 .navbar-brand {
     font-weight: 800;
