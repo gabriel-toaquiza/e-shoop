@@ -21,6 +21,10 @@ ESTADOS_VENTA = ('pagado', 'enviado', 'entregado')
 # Flujo ordenado de estados de un pedido
 FLUJO_PEDIDO = ['pendiente', 'pagado', 'enviado', 'entregado']
 
+# Imágenes adicionales (galería) por producto
+MAX_IMAGENES = 4
+EXTENSIONES_IMG = {'jpg', 'jpeg', 'webp'}
+
 
 # ── HELPERS DE IMAGEN ─────────────────────────────────────────────
 def guardar_imagen(archivo):
@@ -53,6 +57,12 @@ def _redirigir_seguro(referrer, fallback):
     if referrer and urlparse(referrer).netloc == urlparse(request.host_url).netloc:
         return redirect(referrer)
     return redirect(fallback)
+
+
+def _extension_valida(nombre):
+    """True si el nombre de archivo tiene una extensión de imagen permitida."""
+    ext = os.path.splitext(nombre)[1].lower().lstrip('.')
+    return ext in EXTENSIONES_IMG
 
 
 # ── DASHBOARD ─────────────────────────────────────────────────────
@@ -114,6 +124,8 @@ def crear_categoria():
             descripcion = form.descripcion.data,
             activa      = form.activa.data
         )
+        if hay_imagen_nueva(form.imagen):
+            categoria.imagen = guardar_imagen(form.imagen.data)
         db.session.add(categoria)
         db.session.commit()
         flash('Categoría creada correctamente.', 'success')
@@ -132,11 +144,20 @@ def editar_categoria(id):
         categoria.nombre      = form.nombre.data
         categoria.descripcion = form.descripcion.data
         categoria.activa      = form.activa.data
+
+        imagen_anterior = categoria.imagen
+        if hay_imagen_nueva(form.imagen):
+            categoria.imagen = guardar_imagen(form.imagen.data)
+        elif form.quitar_imagen.data and categoria.imagen:
+            categoria.imagen = None
+
         db.session.commit()
+        if imagen_anterior and imagen_anterior != categoria.imagen:
+            eliminar_imagen(imagen_anterior)
         flash('Categoría actualizada correctamente.', 'success')
         return redirect(url_for('admin.categorias'))
     return render_template('admin/categorias/form.html',
-                           form=form, titulo='Editar categoría')
+                           form=form, titulo='Editar categoría', categoria=categoria)
 
 
 @admin_bp.route('/categorias/<int:id>/toggle', methods=['POST'])
@@ -182,17 +203,32 @@ def crear_producto():
             categoria_id = form.categoria_id.data,
             activo       = form.activo.data
         )
-        imagen_guardada = None
+        guardadas = []   # todos los archivos guardados, para limpiar si falla el commit
+
+        # Portada
         if hay_imagen_nueva(form.imagen):
-            imagen_guardada = guardar_imagen(form.imagen.data)
-            producto.imagen = imagen_guardada
+            producto.imagen = guardar_imagen(form.imagen.data)
+            guardadas.append(producto.imagen)
+
+        # Imágenes adicionales (galería), máximo MAX_IMAGENES
+        adicionales = []
+        for archivo in (form.imagenes_nuevas.data or []):
+            if len(adicionales) >= MAX_IMAGENES:
+                break
+            if isinstance(archivo, FileStorage) and archivo.filename and _extension_valida(archivo.filename):
+                nombre = guardar_imagen(archivo)
+                adicionales.append(nombre)
+                guardadas.append(nombre)
+        if adicionales:
+            producto.imagenes = ','.join(adicionales)
 
         db.session.add(producto)
         try:
             db.session.commit()
         except Exception:
             db.session.rollback()
-            eliminar_imagen(imagen_guardada)   # no dejar la imagen huérfana
+            for n in guardadas:
+                eliminar_imagen(n)
             flash('No se pudo crear el producto. Intenta de nuevo.', 'danger')
             return redirect(url_for('admin.crear_producto'))
 
@@ -225,27 +261,45 @@ def editar_producto(id):
         producto.categoria_id = form.categoria_id.data
         producto.activo       = form.activo.data
 
+        # --- Portada ---
         imagen_anterior = producto.imagen
         imagen_nueva    = None
-
         if hay_imagen_nueva(form.imagen):
-            # Se subió una nueva (no borramos la anterior aún, por si falla el commit)
             imagen_nueva    = guardar_imagen(form.imagen.data)
             producto.imagen = imagen_nueva
         elif form.quitar_imagen.data and producto.imagen:
             producto.imagen = None
 
+        # --- Imágenes adicionales ---
+        adicionales = producto.lista_imagenes()
+        a_borrar    = request.form.getlist('borrar_imagenes')
+        adicionales = [img for img in adicionales if img not in a_borrar]
+
+        nuevas_guardadas = []
+        for archivo in (form.imagenes_nuevas.data or []):
+            if len(adicionales) >= MAX_IMAGENES:
+                break
+            if isinstance(archivo, FileStorage) and archivo.filename and _extension_valida(archivo.filename):
+                nombre = guardar_imagen(archivo)
+                adicionales.append(nombre)
+                nuevas_guardadas.append(nombre)
+        producto.imagenes = ','.join(adicionales) if adicionales else None
+
         try:
             db.session.commit()
         except Exception:
             db.session.rollback()
-            eliminar_imagen(imagen_nueva)   # borrar la recién subida
+            eliminar_imagen(imagen_nueva)
+            for n in nuevas_guardadas:
+                eliminar_imagen(n)
             flash('No se pudo actualizar el producto. Intenta de nuevo.', 'danger')
             return redirect(url_for('admin.editar_producto', id=id))
 
-        # Commit OK: recién ahora borramos del disco la imagen anterior si cambió
+        # Commit OK: borrar del disco lo que ya no se usa
         if imagen_anterior and imagen_anterior != producto.imagen:
             eliminar_imagen(imagen_anterior)
+        for nombre in a_borrar:
+            eliminar_imagen(nombre)
 
         flash('Producto actualizado correctamente.', 'success')
         return redirect(url_for('admin.productos'))

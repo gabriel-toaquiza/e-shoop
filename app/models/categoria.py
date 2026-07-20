@@ -6,6 +6,7 @@ class Categoria(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
     nombre      = db.Column(db.String(80), unique=True, nullable=False)
     descripcion = db.Column(db.String(200))
+    imagen      = db.Column(db.String(300))
     activa      = db.Column(db.Boolean, default=True)
 
     # Relación: una categoría tiene muchos productos

@@ -6,7 +6,7 @@
     <div class="col-md-6">
         <h2 class="mb-4">{{ titulo }}</h2>
 
-        <form method="POST" novalidate>
+        <form method="POST" enctype="multipart/form-data" novalidate>
             {{ form.hidden_tag() }}
 
             <div class="mb-3">
@@ -25,6 +25,25 @@
                 {% endfor %}
             </div>
 
+            <!-- Imagen de la categoría - manejo en vivo -->
+            <div class="mb-3">
+                <label class="form-label">Imagen</label>
+                <div id="simg-preview" class="mb-2 {% if not (categoria and categoria.imagen) %}d-none{% endif %}">
+                    <img id="simg-img"
+                         src="{% if categoria and categoria.imagen %}{{ url_for('static', filename='img/' + categoria.imagen) }}{% endif %}"
+                         width="100" height="100" style="object-fit:cover;" class="rounded border d-block">
+                    <button type="button" class="btn btn-sm btn-link text-danger p-0" id="simg-quitar">× Quitar</button>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="simg-btn">
+                    <i class="bi bi-image"></i> Seleccionar imagen
+                </button>
+                {{ form.imagen(class='d-none', id='simg-input', accept='.jpg,.jpeg,.webp') }}
+                {{ form.quitar_imagen(class='d-none', id='simg-quitar-check') }}
+                {% for error in form.imagen.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            </div>
+
             <div class="mb-3 form-check">
                 {{ form.activa(class='form-check-input') }}
                 {{ form.activa.label(class='form-check-label') }}
@@ -37,4 +56,37 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+(function () {
+  const btn         = document.getElementById('simg-btn');
+  const input       = document.getElementById('simg-input');
+  const preview     = document.getElementById('simg-preview');
+  const img         = document.getElementById('simg-img');
+  const quitarBtn   = document.getElementById('simg-quitar');
+  const quitarCheck = document.getElementById('simg-quitar-check');
+  if (!btn) return;
+  const hayExistente = !!img.getAttribute('src');
+
+  btn.addEventListener('click', () => input.click());
+
+  input.addEventListener('change', function () {
+    if (input.files.length) {
+      img.src = URL.createObjectURL(input.files[0]);
+      preview.classList.remove('d-none');
+      if (quitarCheck) quitarCheck.checked = false;
+    }
+  });
+
+  quitarBtn.addEventListener('click', function () {
+    input.value = '';
+    input.files = new DataTransfer().files;
+    preview.classList.add('d-none');
+    if (quitarCheck && hayExistente) quitarCheck.checked = true;
+  });
+})();
+</script>
 {% endblock %}

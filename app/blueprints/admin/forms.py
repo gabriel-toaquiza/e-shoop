@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileSize
 from wtforms import (StringField, TextAreaField, BooleanField, SubmitField,
-                     DecimalField, IntegerField, SelectField)
+                     DecimalField, IntegerField, SelectField, MultipleFileField)
 from wtforms.validators import (DataRequired, Length, NumberRange, Optional,
                                 ValidationError)
 from app.models import Categoria
@@ -15,6 +15,14 @@ class FormCategoria(FlaskForm):
                   validators=[Length(max=200)])
 
     activa      = BooleanField('Activa', default=True)
+
+    imagen        = FileField('Imagen',
+                    validators=[FileAllowed(['jpg', 'jpeg', 'webp'],
+                                'Solo se permiten imágenes jpg, jpeg o webp.'),
+                                FileSize(max_size=2 * 1024 * 1024,
+                                message='La imagen no debe superar los 2 MB.')])
+
+    quitar_imagen = BooleanField('Eliminar la imagen actual')
 
     submit      = SubmitField('Guardar')
 
@@ -56,6 +64,8 @@ class FormProducto(FlaskForm):
                                message='La imagen no debe superar los 2 MB.')])
 
     quitar_imagen = BooleanField('Eliminar la imagen actual')
+
+    imagenes_nuevas = MultipleFileField('Imágenes adicionales (máx. 4)')
 
     activo       = BooleanField('Activo', default=True)
 

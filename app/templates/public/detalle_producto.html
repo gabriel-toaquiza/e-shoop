@@ -12,94 +12,103 @@
 <!-- Detalle principal -->
 <div class="row mb-5">
 
-  <!-- Imagen -->
-  <div class="col-md-5">
-    {% if producto.imagen %}
-      <img src="{{ url_for('static', filename='img/' + producto.imagen) }}"
-           class="img-fluid rounded shadow"
-           alt="{{ producto.nombre }}">
+  <!-- Imagen + galería (miniaturas a la izquierda) -->
+  <div class="col-md-6 mb-4">
+    {% set galeria = ([producto.imagen] if producto.imagen else []) + producto.lista_imagenes() %}
+    {% if galeria %}
+      <div class="d-flex gap-3">
+        {% if galeria|length > 1 %}
+        <div class="d-flex flex-column gap-2 flex-shrink-0"
+             style="width:70px; max-height:480px; overflow-y:auto;">
+          {% for img in galeria %}
+          <img src="{{ url_for('static', filename='img/' + img) }}"
+               class="rounded border w-100"
+               style="height:60px;object-fit:cover;cursor:pointer;"
+               onclick="document.getElementById('imagen-principal').src=this.src">
+          {% endfor %}
+        </div>
+        {% endif %}
+        <div class="flex-grow-1" style="min-width:0;">
+          <img id="imagen-principal"
+               src="{{ url_for('static', filename='img/' + galeria[0]) }}"
+               class="img-fluid rounded shadow"
+               alt="{{ producto.nombre }}">
+        </div>
+      </div>
     {% else %}
-      <div class="bg-light border rounded d-flex align-items-center
-                  justify-content-center"
-           style="height: 350px;">
+      <div class="bg-light border rounded d-flex align-items-center justify-content-center"
+           style="height: 400px;">
         <span class="text-muted fs-5">Sin imagen disponible</span>
       </div>
     {% endif %}
   </div>
 
   <!-- Información -->
-  <div class="col-md-7">
+  <div class="col-md-6">
 
-    <!-- Categoría y nombre -->
-    <span class="badge bg-secondary mb-2">{{ producto.categoria.nombre }}</span>
-    <h2 class="mb-1">{{ producto.nombre }}</h2>
+    <!-- Nombre -->
+    <h2 class="fw-bold text-uppercase mb-2">{{ producto.nombre }}</h2>
 
     <!-- Precio -->
-    <h3 class="text-primary fw-bold my-3">
-      ${{ "%.2f"|format(producto.precio) }}
-    </h3>
-
-    <!-- Favorito -->
-    <form method="POST" action="{{ url_for('public.toggle_favorito', id=producto.id) }}" class="mb-3">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button class="btn btn-outline-danger btn-sm">
-        {% if producto.id in favoritos_ids %}
-          <i class="bi bi-heart-fill"></i> En favoritos
-        {% else %}
-          <i class="bi bi-heart"></i> Agregar a favoritos
-        {% endif %}
-      </button>
-    </form>
-
-    <!-- Disponibilidad -->
-    {% if producto.tiene_stock() %}
-      <p class="text-success fw-semibold"><i class="bi bi-check-circle"></i> Disponible</p>
-    {% else %}
-      <p class="text-danger fw-semibold"><i class="bi bi-x-circle"></i> No disponible</p>
-    {% endif %}
+    <div class="mb-3">
+      <span class="h3 text-primary fw-bold">${{ "%.2f"|format(producto.precio) }}</span>
+      <small class="text-muted ms-1">(IVA incluido)</small>
+    </div>
 
     <!-- Descripción -->
     {% if producto.descripcion %}
-      <p class="text-muted mt-3">{{ producto.descripcion }}</p>
+      <p class="text-muted">{{ producto.descripcion }}</p>
     {% endif %}
 
     <hr>
 
-    <!-- Formulario agregar al carrito -->
+    <!-- Cantidad + Añadir al carrito (lado a lado) -->
     {% if producto.tiene_stock() %}
-      <form method="POST"
-            action="{{ url_for('public.agregar_carrito', id=producto.id) }}">
+      <form method="POST" action="{{ url_for('public.agregar_carrito', id=producto.id) }}"
+            class="d-flex align-items-center flex-wrap gap-3 mb-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-        <div class="row align-items-center g-3">
-
-          <!-- Selector de cantidad -->
-          <div class="col-auto">
-            <label class="form-label mb-1 d-block">Cantidad</label>
-            <div class="input-group selector-cantidad">
-              <button type="button" class="btn btn-outline-secondary px-3" id="btn-menos">−</button>
-              <input type="number" name="cantidad" id="cantidad"
-                     class="form-control text-center fw-bold"
-                     value="1" min="1" max="10">
-              <button type="button" class="btn btn-outline-secondary px-3" id="btn-mas">+</button>
-            </div>
-          </div>
-
-          <!-- Botón agregar -->
-          <div class="col-auto align-self-end">
-            <button type="submit" class="btn btn-primary btn-lg">
-              🛒 Agregar al carrito
-            </button>
-          </div>
-
+        <div class="input-group selector-cantidad">
+          <button type="button" class="btn btn-outline-secondary px-3" id="btn-menos">−</button>
+          <input type="number" name="cantidad" id="cantidad"
+                 class="form-control text-center fw-bold" value="1" min="1" max="10">
+          <button type="button" class="btn btn-outline-secondary px-3" id="btn-mas">+</button>
         </div>
+        <button type="submit" class="btn btn-primary btn-lg text-uppercase fw-semibold px-4">
+          Añadir al carrito
+        </button>
       </form>
-
     {% else %}
-      <button class="btn btn-secondary btn-lg" disabled>
-        No disponible
-      </button>
+      <button class="btn btn-secondary btn-lg mb-4" disabled>No disponible</button>
     {% endif %}
+
+    <!-- Disponibilidad -->
+    <p class="mb-2">
+      <span class="text-uppercase small text-muted fw-semibold me-3">Disponibilidad</span>
+      {% if producto.tiene_stock() %}
+        <span class="text-primary"><i class="bi bi-check-circle"></i> Disponible</span>
+      {% else %}
+        <span class="text-muted"><i class="bi bi-x-circle"></i> No disponible</span>
+      {% endif %}
+    </p>
+
+    <!-- Categoría -->
+    <p class="mb-3">
+      <span class="text-uppercase small text-muted fw-semibold me-3">Categoría</span>
+      <a href="{{ url_for('public.tienda', categoria=producto.categoria_id) }}"
+         class="text-decoration-none text-uppercase text-primary">{{ producto.categoria.nombre }}</a>
+    </p>
+
+    <!-- Añadir a favoritos -->
+    <form method="POST" action="{{ url_for('public.toggle_favorito', id=producto.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-link text-decoration-none p-0 {% if producto.id in favoritos_ids %}text-danger{% else %}text-muted{% endif %}">
+        {% if producto.id in favoritos_ids %}
+          <i class="bi bi-heart-fill"></i> En tu lista de favoritos
+        {% else %}
+          <i class="bi bi-heart"></i> Añadir a favoritos
+        {% endif %}
+      </button>
+    </form>
 
   </div>
 </div>
@@ -153,29 +162,24 @@
 
 
 {% block scripts %}
-<!-- Control de cantidad con jQuery -->
+<!-- Control de cantidad -->
 <script>
   const input    = document.getElementById('cantidad');
   const btnMenos = document.getElementById('btn-menos');
   const btnMas   = document.getElementById('btn-mas');
   const stock    = 10;
 
-  btnMenos.addEventListener('click', () => {
-    if (parseInt(input.value) > 1) {
-      input.value = parseInt(input.value) - 1;
-    }
-  });
-
-  btnMas.addEventListener('click', () => {
-    if (parseInt(input.value) < stock) {
-      input.value = parseInt(input.value) + 1;
-    }
-  });
-
-  // Validar si escriben manualmente
-  input.addEventListener('change', () => {
-    if (parseInt(input.value) < 1)     input.value = 1;
-    if (parseInt(input.value) > stock) input.value = stock;
-  });
+  if (input && btnMenos && btnMas) {
+    btnMenos.addEventListener('click', () => {
+      if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+    });
+    btnMas.addEventListener('click', () => {
+      if (parseInt(input.value) < stock) input.value = parseInt(input.value) + 1;
+    });
+    input.addEventListener('change', () => {
+      if (parseInt(input.value) < 1)     input.value = 1;
+      if (parseInt(input.value) > stock) input.value = stock;
+    });
+  }
 </script>
 {% endblock %}

@@ -9,7 +9,8 @@ class Producto(db.Model):
     descripcion     = db.Column(db.Text)
     precio          = db.Column(db.Numeric(10, 2), nullable=False)  # 10 dígitos, 2 decimales
     stock           = db.Column(db.Integer, default=0)
-    imagen          = db.Column(db.String(300))                      # ruta del archivo
+    imagen          = db.Column(db.String(300))                      # portada
+    imagenes        = db.Column(db.Text)                             # adicionales (nombres separados por coma)
     activo          = db.Column(db.Boolean, default=True)
     creado_en       = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -21,6 +22,10 @@ class Producto(db.Model):
 
     def tiene_stock(self):
         return self.stock > 0
+
+    def lista_imagenes(self):
+        """Nombres de las imágenes adicionales (galería)."""
+        return self.imagenes.split(',') if self.imagenes else []
 
     def __repr__(self):
         return f'<Producto {self.nombre} | ${self.precio}>'
