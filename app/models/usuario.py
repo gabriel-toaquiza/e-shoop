@@ -3,6 +3,15 @@ from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
+
+# Tabla de asociación para favoritos (muchos-a-muchos Usuario <-> Producto)
+favoritos_table = db.Table(
+    'favoritos',
+    db.Column('usuario_id', db.Integer, db.ForeignKey('usuarios.id'), primary_key=True),
+    db.Column('producto_id', db.Integer, db.ForeignKey('productos.id'), primary_key=True),
+)
+
+
 class Usuario(UserMixin, db.Model):
     __tablename__ = 'usuarios'
 
@@ -16,6 +25,11 @@ class Usuario(UserMixin, db.Model):
 
     # Relación: un usuario tiene muchos pedidos
     pedidos = db.relationship('Pedido', backref='cliente', lazy=True)
+
+    # Relación: productos marcados como favoritos
+    favoritos = db.relationship('Producto', secondary=favoritos_table,
+                                lazy='subquery',
+                                backref=db.backref('favorito_de', lazy=True))
 
 
     # -- Metodos de contraseña

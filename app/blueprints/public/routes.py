@@ -1,8 +1,17 @@
+from urllib.parse import urlparse
 from flask import render_template, redirect, url_for, flash, request, session, abort
 from flask_login import login_required, current_user
 from app import db
 from app.models import Producto, Categoria, Pedido, DetallePedido
 from app.blueprints.public import public_bp
+
+
+def _volver_atras(fallback):
+    """Redirige a la página anterior si es del mismo sitio; si no, al fallback."""
+    destino = request.referrer
+    if not destino or urlparse(destino).netloc != urlparse(request.host_url).netloc:
+        destino = fallback
+    return redirect(destino)
 
 
 # ── HOME ──────────────────────────────────────────────────────────
@@ -117,7 +126,7 @@ def agregar_carrito(id):
 
     session['carrito'] = carrito
     flash(f'"{producto.nombre}" agregado al carrito.', 'success')
-    return redirect(url_for('public.carrito'))
+    return _volver_atras(url_for('public.tienda'))
 
 
 @public_bp.route('/carrito/eliminar/<int:id>', methods=['POST'])
@@ -245,3 +254,41 @@ def mis_pedidos():
 @public_bp.route('/acerca')
 def acerca():
     return render_template('public/acerca.html')
+
+
+# ── FAVORITOS ─────────────────────────────────────────────────────
+@public_bp.route('/favoritos/toggle/<int:id>', methods=['POST'])
+def toggle_favorito(id):
+    producto = Producto.query.get_or_404(id)
+
+    if current_user.is_authenticated:
+        # Usuario logueado → se guarda en la base de datos
+        if producto in current_user.favoritos:
+            current_user.favoritos.remove(producto)
+            flash(f'"{producto.nombre}" quitado de favoritos.', 'info')
+        else:
+            current_user.favoritos.append(producto)
+            flash(f'"{producto.nombre}" agregado a favoritos.', 'success')
+        db.session.commit()
+    else:
+        # Usuario anónimo → se guarda en la sesión
+        favs = session.get('favoritos', [])
+        if id in favs:
+            favs.remove(id)
+            flash(f'"{producto.nombre}" quitado de favoritos.', 'info')
+        else:
+            favs.append(id)
+            flash(f'"{producto.nombre}" agregado a favoritos.', 'success')
+        session['favoritos'] = favs
+
+    return _volver_atras(url_for('public.favoritos'))
+
+
+@public_bp.route('/favoritos')
+def favoritos():
+    if current_user.is_authenticated:
+        productos = current_user.favoritos
+    else:
+        ids = session.get('favoritos', [])
+        productos = Producto.query.filter(Producto.id.in_(ids)).all() if ids else []
+    return render_template('public/favoritos.html', productos=productos)

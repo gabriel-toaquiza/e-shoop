@@ -1,8 +1,8 @@
 from urllib.parse import urlparse
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import Usuario
+from app.models import Usuario, Producto
 from app.blueprints.auth import auth_bp
 from app.blueprints.auth.forms import FormRegistro, FormLogin
 
@@ -58,6 +58,16 @@ def login():
                 return redirect(url_for('auth.login'))
 
             login_user(usuario, remember=form.remember.data)
+
+            # Fusionar los favoritos guardados en la sesión (anónimo) con la cuenta
+            favs_sesion = session.pop('favoritos', [])
+            for pid in favs_sesion:
+                prod = db.session.get(Producto, pid)
+                if prod and prod not in usuario.favoritos:
+                    usuario.favoritos.append(prod)
+            if favs_sesion:
+                db.session.commit()
+
             flash(f'Bienvenido, {usuario.nombre}!', 'success')
 
             # Redirigir a la página que intentaba visitar (solo si es local)

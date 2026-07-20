@@ -1,7 +1,7 @@
-from flask import Flask
+from flask import Flask, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
 from app.config import Config
 
@@ -40,6 +40,15 @@ def create_app():
     app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+
+    # Favoritos disponibles en todas las plantillas (para el ❤ y el contador)
+    @app.context_processor
+    def inject_favoritos():
+        if current_user.is_authenticated:
+            ids = {p.id for p in current_user.favoritos}
+        else:
+            ids = set(session.get('favoritos', []))
+        return {'favoritos_ids': ids}
 
     return app
 

@@ -51,6 +51,18 @@
       ${{ "%.2f"|format(producto.precio) }}
     </h3>
 
+    <!-- Favorito -->
+    <form method="POST" action="{{ url_for('public.toggle_favorito', id=producto.id) }}" class="mb-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-outline-danger btn-sm">
+        {% if producto.id in favoritos_ids %}
+          <i class="bi bi-heart-fill"></i> En favoritos
+        {% else %}
+          <i class="bi bi-heart"></i> Agregar a favoritos
+        {% endif %}
+      </button>
+    </form>
+
     <!-- Disponibilidad -->
     {% if producto.tiene_stock() %}
       <p class="text-success fw-semibold">✔ En stock</p>

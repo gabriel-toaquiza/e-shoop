@@ -90,6 +90,16 @@
                         </ul>
                     </div>
 
+                    <!-- Favoritos -->
+                    <a class="nav-link position-relative" href="{{ url_for('public.favoritos') }}">
+                        <i class="bi bi-heart fs-5"></i>
+                        {% if favoritos_ids|length > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ favoritos_ids|length }}
+                        </span>
+                        {% endif %}
+                    </a>
+
                     <!-- Carrito -->
                     <a class="nav-link position-relative" href="{{ url_for('public.carrito') }}">
                         <i class="bi bi-cart fs-5"></i>

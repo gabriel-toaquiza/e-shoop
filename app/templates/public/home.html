@@ -38,15 +38,28 @@
   {% for p in productos %}
   <div class="col">
     <div class="card h-100">
-      <a href="{{ url_for('public.detalle_producto', id=p.id) }}">
-        {% if p.imagen %}
-          <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
-               class="card-img-top" style="height:200px;object-fit:cover;" alt="{{ p.nombre }}">
-        {% else %}
-          <div class="d-flex align-items-center justify-content-center text-muted"
-               style="height:200px;background:#f3eef0;">Sin imagen</div>
-        {% endif %}
-      </a>
+      <div class="position-relative">
+        <a href="{{ url_for('public.detalle_producto', id=p.id) }}">
+          {% if p.imagen %}
+            <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
+                 class="card-img-top" style="height:200px;object-fit:cover;" alt="{{ p.nombre }}">
+          {% else %}
+            <div class="d-flex align-items-center justify-content-center text-muted"
+                 style="height:200px;background:#f3eef0;">Sin imagen</div>
+          {% endif %}
+        </a>
+        <form method="POST" action="{{ url_for('public.toggle_favorito', id=p.id) }}"
+              class="position-absolute top-0 end-0 m-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-light btn-sm rounded-circle shadow-sm px-2" title="Favorito">
+            {% if p.id in favoritos_ids %}
+              <i class="bi bi-heart-fill text-danger"></i>
+            {% else %}
+              <i class="bi bi-heart"></i>
+            {% endif %}
+          </button>
+        </form>
+      </div>
       <div class="card-body">
         <h6 class="card-title mb-1">{{ p.nombre }}</h6>
         <p class="text-primary fw-bold mb-0">${{ "%.2f"|format(p.precio) }}</p>
