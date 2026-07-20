@@ -18,7 +18,11 @@
 body {
     background-color: var(--marca-fondo);
     color: #2b2b2b;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;   /* evita barra horizontal por el hero a todo el ancho */
+}
+h1, h2, h3, .navbar-brand {
+    font-family: 'Marcellus', Georgia, serif;
 }
 
 /* ---------- Navbar clara con marca ---------- */
@@ -47,9 +51,9 @@ body {
     border-radius: 1.25rem !important;
 }
 
-/* ---------- Botones tipo "pill" ---------- */
+/* ---------- Botones rectangulares (estilo del ejemplo) ---------- */
 .btn {
-    border-radius: 50rem;
+    border-radius: .35rem;
     font-weight: 500;
     padding-left: 1.15rem;
     padding-right: 1.15rem;
@@ -73,17 +77,17 @@ body {
     --bs-btn-active-border-color:   var(--marca-principal);
 }
 
-/* ---------- Tarjetas ---------- */
+/* ---------- Tarjetas limpias (estilo del ejemplo) ---------- */
 .card {
-    border: none;
-    border-radius: 1rem;
+    border: 1px solid #ece0e5;
+    border-radius: .5rem;
     overflow: hidden;
-    box-shadow: 0 4px 14px rgba(91, 26, 46, .06);
+    box-shadow: none;
     transition: transform .18s ease, box-shadow .18s ease;
 }
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 28px rgba(91, 26, 46, .12);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(91, 26, 46, .10);
 }
 .card-header {
     background-color: #ffffff;
@@ -146,4 +150,58 @@ footer {
 footer a {
     color: var(--marca-secundario);
     text-decoration: none;
+}
+
+/* ---------- Hero con imagen de fondo ---------- */
+.hero {
+    position: relative;
+    min-height: 460px;
+    border-radius: 1.25rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    color: #ffffff;
+    background-color: var(--marca-principal-oscuro);   /* respaldo si falta la imagen */
+    background-size: cover;
+    background-position: center;
+}
+.hero h1 {
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    line-height: 1.08;
+}
+/* Hero a todo el ancho de la web (borde a borde y pegado al navbar) */
+.hero-full {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: -1.5rem;     /* cancela el mt-4 del contenedor: pega al navbar */
+    border-radius: 0;
+    min-height: 78vh;        /* ocupa buena parte de la pantalla */
+}
+
+/* ---------- Recuadros de categoría ---------- */
+.categoria-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+    border-radius: .5rem;
+    text-decoration: none;
+    background: linear-gradient(135deg, #f3e3ec, var(--marca-secundario));
+    background-size: cover;
+    background-position: center;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+.categoria-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(91, 26, 46, .15);
+}
+.categoria-label {
+    background: #ffffff;
+    color: var(--marca-principal);
+    font-weight: 600;
+    padding: .5rem 1.25rem;
+    border-radius: 50rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+    text-align: center;
 }
