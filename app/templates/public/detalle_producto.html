@@ -3,23 +3,11 @@
 
 {% block content %}
 
-<!-- Miga de pan -->
-<nav aria-label="breadcrumb" class="mb-4">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item">
-      <a href="{{ url_for('public.home') }}">Inicio</a>
-    </li>
-    <li class="breadcrumb-item">
-      <a href="{{ url_for('public.tienda') }}">Tienda</a>
-    </li>
-    <li class="breadcrumb-item">
-      <a href="{{ url_for('public.tienda', categoria=producto.categoria_id) }}">
-        {{ producto.categoria.nombre }}
-      </a>
-    </li>
-    <li class="breadcrumb-item active">{{ producto.nombre }}</li>
-  </ol>
-</nav>
+<!-- Volver -->
+<button type="button" onclick="history.back()"
+        class="btn btn-outline-secondary btn-sm mb-4">
+  <i class="bi bi-arrow-left"></i> Volver
+</button>
 
 <!-- Detalle principal -->
 <div class="row mb-5">
@@ -65,9 +53,9 @@
 
     <!-- Disponibilidad -->
     {% if producto.tiene_stock() %}
-      <p class="text-success fw-semibold">✔ En stock</p>
+      <p class="text-success fw-semibold"><i class="bi bi-check-circle"></i> Disponible</p>
     {% else %}
-      <p class="text-danger fw-semibold">✖ Sin stock</p>
+      <p class="text-danger fw-semibold"><i class="bi bi-x-circle"></i> No disponible</p>
     {% endif %}
 
     <!-- Descripción -->
@@ -87,15 +75,13 @@
 
           <!-- Selector de cantidad -->
           <div class="col-auto">
-            <label class="form-label mb-1">Cantidad</label>
-            <div class="input-group" style="width: 130px;">
-              <button type="button" class="btn btn-outline-secondary"
-                      id="btn-menos">−</button>
+            <label class="form-label mb-1 d-block">Cantidad</label>
+            <div class="input-group selector-cantidad">
+              <button type="button" class="btn btn-outline-secondary px-3" id="btn-menos">−</button>
               <input type="number" name="cantidad" id="cantidad"
-                     class="form-control text-center"
+                     class="form-control text-center fw-bold"
                      value="1" min="1" max="10">
-              <button type="button" class="btn btn-outline-secondary"
-                      id="btn-mas">+</button>
+              <button type="button" class="btn btn-outline-secondary px-3" id="btn-mas">+</button>
             </div>
           </div>
 
@@ -111,17 +97,9 @@
 
     {% else %}
       <button class="btn btn-secondary btn-lg" disabled>
-        Sin stock disponible
+        No disponible
       </button>
     {% endif %}
-
-    <!-- Botón volver -->
-    <div class="mt-3">
-      <a href="{{ url_for('public.tienda') }}"
-         class="btn btn-outline-secondary btn-sm">
-        ← Volver a la tienda
-      </a>
-    </div>
 
   </div>
 </div>
@@ -152,9 +130,9 @@
           ${{ "%.2f"|format(r.precio) }}
         </p>
         {% if r.tiene_stock() %}
-          <small class="text-success">En stock</small>
+          <small class="text-success">Disponible</small>
         {% else %}
-          <small class="text-danger">Sin stock</small>
+          <small class="text-danger">No disponible</small>
         {% endif %}
       </div>
 

@@ -205,3 +205,17 @@ footer a {
     box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
     text-align: center;
 }
+
+/* ---------- Selector de cantidad (detalle de producto) ---------- */
+.selector-cantidad {
+    width: 160px;
+}
+/* Ocultar las flechitas del campo numérico para que el número se vea bien */
+.selector-cantidad input[type=number] {
+    -moz-appearance: textfield;
+}
+.selector-cantidad input[type=number]::-webkit-outer-spin-button,
+.selector-cantidad input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
