@@ -1,9 +1,18 @@
+from urllib.parse import urlparse
 from flask import render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import Usuario
 from app.blueprints.auth import auth_bp
 from app.blueprints.auth.forms import FormRegistro, FormLogin
+
+
+def _es_url_segura(destino):
+    """Evita open redirect: solo acepta rutas locales del propio sitio."""
+    if not destino:
+        return False
+    ref = urlparse(destino)
+    return not ref.netloc and not ref.scheme
 
 
 # ── REGISTRO ──────────────────────────────────────────────────────
@@ -51,8 +60,10 @@ def login():
             login_user(usuario, remember=form.remember.data)
             flash(f'Bienvenido, {usuario.nombre}!', 'success')
 
-            # Redirigir a la página que intentaba visitar (si aplica)
+            # Redirigir a la página que intentaba visitar (solo si es local)
             next_page = request.args.get('next')
+            if not _es_url_segura(next_page):
+                next_page = None
 
             # Redirigir según rol
             if usuario.es_admin():
@@ -66,7 +77,7 @@ def login():
 
 
 # ── LOGOUT ────────────────────────────────────────────────────────
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()

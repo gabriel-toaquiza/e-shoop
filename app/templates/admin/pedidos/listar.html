@@ -48,6 +48,7 @@
                 <form action="{{ url_for('admin.avanzar_pedido', id=p.id) }}"
                       method="POST" class="d-inline"
                       onsubmit="return confirm('¿Avanzar el pedido #{{ p.id }} al siguiente estado?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button class="btn btn-sm btn-outline-success">Avanzar ▸</button>
                 </form>
                 {% endif %}
@@ -55,6 +56,7 @@
                 <form action="{{ url_for('admin.cancelar_pedido', id=p.id) }}"
                       method="POST" class="d-inline"
                       onsubmit="return confirm('¿Cancelar el pedido #{{ p.id }}?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button class="btn btn-sm btn-outline-danger">Cancelar</button>
                 </form>
                 {% endif %}

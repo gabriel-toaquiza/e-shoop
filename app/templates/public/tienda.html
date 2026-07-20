@@ -42,11 +42,11 @@
         <h6 class="card-title mb-1">{{ p.nombre }}</h6>
         {% if p.categoria %}<span class="badge bg-secondary mb-2">{{ p.categoria.nombre }}</span>{% endif %}
         <p class="text-primary fw-bold fs-5 mb-1">${{ "%.2f"|format(p.precio) }}</p>
-        <small class="text-muted">Stock: {{ p.stock }}</small>
       </div>
       <div class="card-footer bg-transparent border-0 pt-0 d-grid gap-2">
         <a href="{{ url_for('public.detalle_producto', id=p.id) }}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
         <form method="POST" action="{{ url_for('public.agregar_carrito', id=p.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="cantidad" value="1">
           <button class="btn btn-sm btn-primary w-100" {% if not p.tiene_stock() %}disabled{% endif %}>
             {% if p.tiene_stock() %}🛒 Agregar{% else %}Sin stock{% endif %}

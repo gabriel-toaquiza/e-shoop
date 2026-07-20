@@ -27,7 +27,7 @@
             <td>{{ c.nombre }}</td>
             <td>{{ c.email }}</td>
             <td>{{ c.creado_en.strftime('%d/%m/%Y') if c.creado_en else '—' }}</td>
-            <td class="text-center">{{ c.pedido|length }}</td>
+            <td class="text-center">{{ c.pedidos|length }}</td>
             <td class="text-center">
                 {% if c.activo %}
                     <span class="badge bg-success">Activo</span>
@@ -38,7 +38,8 @@
             <td class="text-end">
                 <form action="{{ url_for('admin.toggle_cliente', id=c.id) }}"
                       method="POST" class="d-inline"
-                      onsubmit="return confirm('¿Seguro que deseas {{ 'desactivar' if c.activo else 'activar' }} la cuenta de {{ c.nombre }}?');">
+                      onsubmit="return confirm('¿Seguro que deseas {{ 'desactivar' if c.activo else 'activar' }} esta cuenta?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     {% if c.activo %}
                         <button class="btn btn-sm btn-outline-danger">Desactivar</button>
                     {% else %}

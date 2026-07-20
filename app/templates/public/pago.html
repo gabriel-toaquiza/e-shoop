@@ -32,6 +32,7 @@
       <div class="card-body">
         <h4 class="card-title mb-3">Datos de entrega</h4>
         <form method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="mb-3">
             <label class="form-label">Dirección de entrega *</label>
             <textarea name="direccion" class="form-control"

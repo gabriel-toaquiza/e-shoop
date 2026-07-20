@@ -35,7 +35,7 @@
                         <a class="nav-link" href="{{ url_for('public.tienda') }}">Tienda</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Acerca de</a>
+                        <a class="nav-link" href="{{ url_for('public.acerca') }}">Acerca de</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Contacto</a>
@@ -77,7 +77,12 @@
                                 <li><a class="dropdown-item" href="{{ url_for('public.mis_pedidos') }}">Mis pedidos</a></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Salir</a></li>
+                                <li>
+                                    <form action="{{ url_for('auth.logout') }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="dropdown-item">Salir</button>
+                                    </form>
+                                </li>
                             {% else %}
                                 <li><a class="dropdown-item" href="{{ url_for('auth.login') }}">Iniciar sesión</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('auth.registro') }}">Registrarse</a></li>
@@ -128,7 +133,7 @@
                     <h6 class="fw-bold text-uppercase mb-3">Mapa del sitio</h6>
                     <ul class="list-unstyled small">
                         <li class="mb-2"><a href="{{ url_for('public.tienda') }}">Tienda</a></li>
-                        <li class="mb-2"><a href="#">Acerca de</a></li>
+                        <li class="mb-2"><a href="{{ url_for('public.acerca') }}">Acerca de</a></li>
                         <li class="mb-2"><a href="#">Contacto</a></li>
                         <li class="mb-2"><a href="#">Términos</a></li>
                     </ul>

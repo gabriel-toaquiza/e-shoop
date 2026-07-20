@@ -53,6 +53,7 @@
       </div>
       <div class="card-footer bg-transparent border-0 pt-0 d-grid">
         <form method="POST" action="{{ url_for('public.agregar_carrito', id=p.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="cantidad" value="1">
           <button class="btn btn-outline-primary btn-sm w-100 text-uppercase fw-semibold"
                   {% if not p.tiene_stock() %}disabled{% endif %}>
@@ -83,7 +84,7 @@
       donde cuidamos cada detalle. Creamos productos únicos, pensados para darle
       personalidad y calidez a tu espacio.
     </p>
-    <a href="#" class="btn btn-primary">Conócenos →</a>
+    <a href="{{ url_for('public.acerca') }}" class="btn btn-primary">Conócenos →</a>
   </div>
 </div>
 

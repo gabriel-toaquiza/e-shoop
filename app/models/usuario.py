@@ -1,5 +1,5 @@
-from app import db 
-from datetime import datetime
+from app import db
+from datetime import datetime, timezone
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
@@ -12,10 +12,10 @@ class Usuario(UserMixin, db.Model):
     password = db.Column(db.String(256),nullable=False)
     rol = db.Column(db.Enum('cliente','admin'), default='cliente')
     activo = db.Column(db.Boolean, default=True)
-    creado_en = db.Column(db.DateTime, default=datetime.now())
+    creado_en = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Relación: un usuario tiene muchos pedidos
-    pedido = db.relationship('Pedido', backref='cliente', lazy=True)
+    pedidos = db.relationship('Pedido', backref='cliente', lazy=True)
 
 
     # -- Metodos de contraseña

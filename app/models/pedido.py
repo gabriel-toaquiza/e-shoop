@@ -1,11 +1,11 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Pedido(db.Model):
     __tablename__ = 'pedidos'
 
     id              = db.Column(db.Integer, primary_key=True)
-    fecha           = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha           = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     estado          = db.Column(
                         db.Enum('pendiente', 'pagado', 'enviado', 'entregado', 'cancelado'),
                         default='pendiente'
@@ -45,7 +45,8 @@ class DetallePedido(db.Model):
     producto_id     = db.Column(db.Integer, db.ForeignKey('productos.id'), nullable=False)
 
     def subtotal(self):
-        return float(self.cantidad) * float(self.precio_unitario)
+        # Se mantiene en Decimal para evitar errores de redondeo con dinero
+        return self.cantidad * self.precio_unitario
 
     def __repr__(self):
         return f'<Detalle pedido#{self.pedido_id} | {self.cantidad}x producto#{self.producto_id}>'

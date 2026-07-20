@@ -4,6 +4,11 @@ from app.models import Usuario, Categoria, Producto
 app = create_app()
 
 with app.app_context():
+    # Evitar duplicados: si ya hay datos, no volver a insertar
+    if Categoria.query.first() or Usuario.query.first():
+        print("⚠️  La base de datos ya tiene datos. Seed cancelado.")
+        raise SystemExit
+
     # Categorías
     cat1 = Categoria(nombre='Electrónica',  descripcion='Dispositivos y gadgets')
     cat2 = Categoria(nombre='Ropa',         descripcion='Prendas de vestir')

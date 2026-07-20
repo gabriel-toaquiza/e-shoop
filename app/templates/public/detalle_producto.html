@@ -53,12 +53,7 @@
 
     <!-- Disponibilidad -->
     {% if producto.tiene_stock() %}
-      <p class="text-success fw-semibold">
-        ✔ En stock
-        <span class="text-muted fw-normal fs-6">
-          ({{ producto.stock }} disponibles)
-        </span>
-      </p>
+      <p class="text-success fw-semibold">✔ En stock</p>
     {% else %}
       <p class="text-danger fw-semibold">✖ Sin stock</p>
     {% endif %}
@@ -74,6 +69,7 @@
     {% if producto.tiene_stock() %}
       <form method="POST"
             action="{{ url_for('public.agregar_carrito', id=producto.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div class="row align-items-center g-3">
 
@@ -85,7 +81,7 @@
                       id="btn-menos">−</button>
               <input type="number" name="cantidad" id="cantidad"
                      class="form-control text-center"
-                     value="1" min="1" max="{{ producto.stock }}">
+                     value="1" min="1" max="10">
               <button type="button" class="btn btn-outline-secondary"
                       id="btn-mas">+</button>
             </div>
@@ -172,7 +168,7 @@
   const input    = document.getElementById('cantidad');
   const btnMenos = document.getElementById('btn-menos');
   const btnMas   = document.getElementById('btn-mas');
-  const stock    = {{ producto.stock }};
+  const stock    = 10;
 
   btnMenos.addEventListener('click', () => {
     if (parseInt(input.value) > 1) {

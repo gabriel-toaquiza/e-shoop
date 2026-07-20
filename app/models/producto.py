@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
 
 class Producto(db.Model):
     __tablename__ = 'productos'
@@ -11,7 +11,7 @@ class Producto(db.Model):
     stock           = db.Column(db.Integer, default=0)
     imagen          = db.Column(db.String(300))                      # ruta del archivo
     activo          = db.Column(db.Boolean, default=True)
-    creado_en       = db.Column(db.DateTime, default=datetime.utcnow)
+    creado_en       = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Clave foránea → categorias
     categoria_id    = db.Column(db.Integer, db.ForeignKey('categorias.id'), nullable=False)

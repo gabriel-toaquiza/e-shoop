@@ -58,6 +58,7 @@
                 <form action="{{ url_for('admin.toggle_producto', id=p.id) }}"
                       method="POST" class="d-inline"
                       onsubmit="return confirm('¿Seguro que deseas {{ 'desactivar' if p.activo else 'activar' }} este producto?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     {% if p.activo %}
                         <button class="btn btn-sm btn-outline-danger">Desactivar</button>
                     {% else %}

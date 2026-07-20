@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, session
+from flask import render_template, redirect, url_for, flash, request, session, abort
 from flask_login import login_required, current_user
 from app import db
 from app.models import Producto, Categoria, Pedido, DetallePedido
@@ -8,7 +8,9 @@ from app.blueprints.public import public_bp
 # ── HOME ──────────────────────────────────────────────────────────
 @public_bp.route('/')
 def home():
-    productos_destacados = Producto.query.filter_by(activo=True).limit(8).all()
+    productos_destacados = (Producto.query.join(Categoria)
+                            .filter(Producto.activo == True, Categoria.activa == True)
+                            .limit(8).all())
     categorias = Categoria.query.filter_by(activa=True).all()
     return render_template('public/home.html',
                            productos=productos_destacados,
@@ -22,15 +24,17 @@ def tienda():
     busqueda     = request.args.get('q', '').strip()
     pagina       = request.args.get('pagina', 1, type=int)
 
-    query = Producto.query.filter_by(activo=True)
+    query = (Producto.query.join(Categoria)
+             .filter(Producto.activo == True, Categoria.activa == True))
 
     # Filtro por categoría
     if categoria_id:
-        query = query.filter_by(categoria_id=categoria_id)
+        query = query.filter(Producto.categoria_id == categoria_id)
 
-    # Filtro por búsqueda
+    # Filtro por búsqueda (se escapan los comodines del usuario)
     if busqueda:
-        query = query.filter(Producto.nombre.ilike(f'%{busqueda}%'))
+        termino = busqueda.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+        query = query.filter(Producto.nombre.ilike(f'%{termino}%', escape='\\'))
 
     # Paginación: 9 productos por página
     productos  = query.paginate(page=pagina, per_page=9, error_out=False)
@@ -47,6 +51,9 @@ def tienda():
 @public_bp.route('/producto/<int:id>')
 def detalle_producto(id):
     producto = Producto.query.get_or_404(id)
+    # No mostrar productos inactivos ni de categorías desactivadas
+    if not producto.activo or (producto.categoria and not producto.categoria.activa):
+        abort(404)
     relacionados = Producto.query.filter(
         Producto.categoria_id == producto.categoria_id,
         Producto.id != producto.id,
@@ -65,9 +72,9 @@ def carrito():
     total     = 0
 
     for prod_id, cantidad in carrito.items():
-        producto = Producto.query.get(int(prod_id))
-        if producto:
-            subtotal = float(producto.precio) * cantidad
+        producto = db.session.get(Producto, int(prod_id))
+        if producto and producto.activo:
+            subtotal = producto.precio * cantidad
             total   += subtotal
             items.append({
                 'producto': producto,
@@ -84,13 +91,21 @@ def carrito():
 def agregar_carrito(id):
     producto = Producto.query.get_or_404(id)
 
+    if not producto.activo or (producto.categoria and not producto.categoria.activa):
+        abort(404)
+
     if not producto.tiene_stock():
         flash('Producto sin stock disponible.', 'warning')
         return redirect(url_for('public.tienda'))
 
     carrito = session.get('carrito', {})
     clave   = str(id)
-    cantidad_solicitada = int(request.form.get('cantidad', 1))
+    try:
+        cantidad_solicitada = int(request.form.get('cantidad', 1))
+    except (TypeError, ValueError):
+        cantidad_solicitada = 1
+    if cantidad_solicitada < 1:
+        cantidad_solicitada = 1
 
     # Sumar si ya existe en el carrito
     carrito[clave] = carrito.get(clave, 0) + cantidad_solicitada
@@ -105,7 +120,7 @@ def agregar_carrito(id):
     return redirect(url_for('public.carrito'))
 
 
-@public_bp.route('/carrito/eliminar/<int:id>')
+@public_bp.route('/carrito/eliminar/<int:id>', methods=['POST'])
 def eliminar_carrito(id):
     carrito = session.get('carrito', {})
     carrito.pop(str(id), None)
@@ -114,7 +129,7 @@ def eliminar_carrito(id):
     return redirect(url_for('public.carrito'))
 
 
-@public_bp.route('/carrito/vaciar')
+@public_bp.route('/carrito/vaciar', methods=['POST'])
 def vaciar_carrito():
     session.pop('carrito', None)
     flash('Carrito vaciado.', 'info')
@@ -139,6 +154,22 @@ def pago():
             flash('La dirección de entrega es obligatoria.', 'danger')
             return redirect(url_for('public.pago'))
 
+        # Seleccionar solo las líneas que se pueden cumplir (activo y con stock)
+        lineas   = []
+        omitidos = []
+        for prod_id, cantidad in carrito.items():
+            producto = db.session.get(Producto, int(prod_id))
+            if producto and producto.activo and producto.stock >= cantidad:
+                lineas.append((producto, cantidad))
+            elif producto:
+                omitidos.append(producto.nombre)
+
+        # No crear un pedido vacío
+        if not lineas:
+            flash('No se pudo procesar el pedido: los productos ya no están '
+                  'disponibles o no tienen stock suficiente.', 'danger')
+            return redirect(url_for('public.carrito'))
+
         # Crear el pedido
         nuevo_pedido = Pedido(
             usuario_id = current_user.id,
@@ -150,17 +181,15 @@ def pago():
         db.session.flush()   # obtiene el ID sin hacer commit
 
         # Crear los detalles y descontar stock
-        for prod_id, cantidad in carrito.items():
-            producto = Producto.query.get(int(prod_id))
-            if producto and producto.stock >= cantidad:
-                detalle = DetallePedido(
-                    pedido_id       = nuevo_pedido.id,
-                    producto_id     = producto.id,
-                    cantidad        = cantidad,
-                    precio_unitario = producto.precio
-                )
-                producto.stock -= cantidad
-                db.session.add(detalle)
+        for producto, cantidad in lineas:
+            detalle = DetallePedido(
+                pedido_id       = nuevo_pedido.id,
+                producto_id     = producto.id,
+                cantidad        = cantidad,
+                precio_unitario = producto.precio
+            )
+            producto.stock -= cantidad
+            db.session.add(detalle)
 
         nuevo_pedido.calcular_total()
         db.session.commit()
@@ -168,6 +197,9 @@ def pago():
         # Vaciar carrito de la sesión
         session.pop('carrito', None)
 
+        if omitidos:
+            flash('Algunos productos no se incluyeron por falta de stock: '
+                  + ', '.join(omitidos) + '.', 'warning')
         flash('¡Pedido realizado con éxito!', 'success')
         return redirect(url_for('public.confirmacion', id=nuevo_pedido.id))
 
@@ -175,9 +207,9 @@ def pago():
     items = []
     total = 0
     for prod_id, cantidad in carrito.items():
-        producto = Producto.query.get(int(prod_id))
-        if producto:
-            subtotal = float(producto.precio) * cantidad
+        producto = db.session.get(Producto, int(prod_id))
+        if producto and producto.activo:
+            subtotal = producto.precio * cantidad
             total   += subtotal
             items.append({'producto': producto,
                           'cantidad': cantidad,
@@ -207,3 +239,9 @@ def mis_pedidos():
         usuario_id=current_user.id
     ).order_by(Pedido.fecha.desc()).all()
     return render_template('public/mis_pedidos.html', pedidos=pedidos)
+
+
+# ── ACERCA DE ─────────────────────────────────────────────────────
+@public_bp.route('/acerca')
+def acerca():
+    return render_template('public/acerca.html')

@@ -1,5 +1,6 @@
 import os
 import uuid
+from urllib.parse import urlparse
 from flask import render_template, redirect, url_for, flash, current_app, request
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
@@ -45,6 +46,13 @@ def eliminar_imagen(nombre):
 def hay_imagen_nueva(campo):
     """True solo si el campo trae un archivo realmente subido (no un nombre previo)."""
     return isinstance(campo.data, FileStorage) and bool(campo.data.filename)
+
+
+def _redirigir_seguro(referrer, fallback):
+    """Redirige al referrer solo si es del mismo sitio (evita redirecciones externas)."""
+    if referrer and urlparse(referrer).netloc == urlparse(request.host_url).netloc:
+        return redirect(referrer)
+    return redirect(fallback)
 
 
 # ── DASHBOARD ─────────────────────────────────────────────────────
@@ -174,11 +182,20 @@ def crear_producto():
             categoria_id = form.categoria_id.data,
             activo       = form.activo.data
         )
+        imagen_guardada = None
         if hay_imagen_nueva(form.imagen):
-            producto.imagen = guardar_imagen(form.imagen.data)
+            imagen_guardada = guardar_imagen(form.imagen.data)
+            producto.imagen = imagen_guardada
 
         db.session.add(producto)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            eliminar_imagen(imagen_guardada)   # no dejar la imagen huérfana
+            flash('No se pudo crear el producto. Intenta de nuevo.', 'danger')
+            return redirect(url_for('admin.crear_producto'))
+
         flash('Producto creado correctamente.', 'success')
         return redirect(url_for('admin.productos'))
 
@@ -208,16 +225,28 @@ def editar_producto(id):
         producto.categoria_id = form.categoria_id.data
         producto.activo       = form.activo.data
 
+        imagen_anterior = producto.imagen
+        imagen_nueva    = None
+
         if hay_imagen_nueva(form.imagen):
-            # Se subió una nueva: reemplaza la anterior
-            eliminar_imagen(producto.imagen)
-            producto.imagen = guardar_imagen(form.imagen.data)
+            # Se subió una nueva (no borramos la anterior aún, por si falla el commit)
+            imagen_nueva    = guardar_imagen(form.imagen.data)
+            producto.imagen = imagen_nueva
         elif form.quitar_imagen.data and producto.imagen:
-            # Se pidió quitar la imagen y dejar el producto sin foto
-            eliminar_imagen(producto.imagen)
             producto.imagen = None
 
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            eliminar_imagen(imagen_nueva)   # borrar la recién subida
+            flash('No se pudo actualizar el producto. Intenta de nuevo.', 'danger')
+            return redirect(url_for('admin.editar_producto', id=id))
+
+        # Commit OK: recién ahora borramos del disco la imagen anterior si cambió
+        if imagen_anterior and imagen_anterior != producto.imagen:
+            eliminar_imagen(imagen_anterior)
+
         flash('Producto actualizado correctamente.', 'success')
         return redirect(url_for('admin.productos'))
 
@@ -292,7 +321,7 @@ def avanzar_pedido(id):
     pedido = Pedido.query.get_or_404(id)
     if pedido.estado not in FLUJO_PEDIDO:
         flash('Este pedido no se puede avanzar.', 'warning')
-        return redirect(request.referrer or url_for('admin.pedidos'))
+        return _redirigir_seguro(request.referrer, url_for('admin.pedidos'))
 
     indice = FLUJO_PEDIDO.index(pedido.estado)
     if indice >= len(FLUJO_PEDIDO) - 1:
@@ -301,7 +330,7 @@ def avanzar_pedido(id):
         pedido.estado = FLUJO_PEDIDO[indice + 1]
         db.session.commit()
         flash(f'Pedido #{pedido.id} actualizado a "{pedido.estado}".', 'success')
-    return redirect(request.referrer or url_for('admin.pedidos'))
+    return _redirigir_seguro(request.referrer, url_for('admin.pedidos'))
 
 
 @admin_bp.route('/pedidos/<int:id>/cancelar', methods=['POST'])
@@ -315,4 +344,4 @@ def cancelar_pedido(id):
         pedido.estado = 'cancelado'
         db.session.commit()
         flash(f'Pedido #{pedido.id} cancelado.', 'info')
-    return redirect(request.referrer or url_for('admin.pedidos'))
+    return _redirigir_seguro(request.referrer, url_for('admin.pedidos'))
