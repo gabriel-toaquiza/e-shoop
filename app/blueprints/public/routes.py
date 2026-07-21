@@ -138,11 +138,27 @@ def eliminar_carrito(id):
     return redirect(url_for('public.carrito'))
 
 
-@public_bp.route('/carrito/vaciar', methods=['POST'])
-def vaciar_carrito():
-    session.pop('carrito', None)
-    flash('Carrito vaciado.', 'info')
-    return redirect(url_for('public.tienda'))
+@public_bp.route('/carrito/actualizar/<int:id>', methods=['POST'])
+def actualizar_carrito(id):
+    carrito = session.get('carrito', {})
+    clave   = str(id)
+    if clave not in carrito:
+        return redirect(url_for('public.carrito'))
+
+    accion   = request.form.get('accion')
+    producto = db.session.get(Producto, id)
+
+    if accion == 'sumar':
+        carrito[clave] += 1
+        if producto and carrito[clave] > producto.stock:
+            carrito[clave] = producto.stock
+            flash('Cantidad ajustada al stock disponible.', 'info')
+    elif accion == 'restar':
+        if carrito[clave] > 1:
+            carrito[clave] -= 1
+
+    session['carrito'] = carrito
+    return redirect(url_for('public.carrito'))
 
 
 # ── PAGO ──────────────────────────────────────────────────────────
@@ -254,6 +270,22 @@ def mis_pedidos():
 @public_bp.route('/acerca')
 def acerca():
     return render_template('public/acerca.html')
+
+
+# ── PÁGINAS INFORMATIVAS (solo banner por ahora) ──────────────────
+@public_bp.route('/contacto')
+def contacto():
+    return render_template('public/contacto.html')
+
+
+@public_bp.route('/terminos')
+def terminos():
+    return render_template('public/terminos.html')
+
+
+@public_bp.route('/privacidad')
+def privacidad():
+    return render_template('public/privacidad.html')
 
 
 # ── FAVORITOS ─────────────────────────────────────────────────────

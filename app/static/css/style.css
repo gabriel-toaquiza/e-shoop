@@ -25,10 +25,24 @@ h1, h2, h3, .navbar-brand {
     font-family: 'Marcellus', Georgia, serif;
 }
 
+/* El contenido central se centra verticalmente cuando hay poco contenido,
+   manteniendo el footer siempre abajo. En páginas largas no afecta. */
+main {
+    display: flex;
+    flex-direction: column;
+}
+main > .container {
+    margin-top: auto !important;
+    margin-bottom: auto !important;
+    padding-top: 2rem;       /* espacio entre el navbar y el contenido */
+}
+
 /* ---------- Navbar clara con marca ---------- */
 .navbar.bg-dark {
     background-color: var(--marca-principal) !important;
     box-shadow: 0 2px 12px rgba(91, 26, 46, .2);
+    padding-top: .9rem;
+    padding-bottom: .9rem;
 }
 .navbar.bg-dark .navbar-brand,
 .navbar.bg-dark .nav-link {
@@ -174,9 +188,30 @@ footer a {
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    margin-top: -1.5rem;     /* cancela el mt-4 del contenedor: pega al navbar */
+    margin-top: -2rem;       /* cancela el padding del contenedor: pega al navbar */
     border-radius: 0;
     min-height: 78vh;        /* ocupa buena parte de la pantalla */
+}
+
+/* ---------- Banner reutilizable (a todo el ancho) ---------- */
+.page-banner {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: -2rem;       /* cancela el padding del contenedor: pega al navbar */
+    min-height: 380px;
+    background-color: var(--marca-principal-oscuro);   /* respaldo si falta la imagen */
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Tarjeta de búsqueda superpuesta al borde inferior del banner */
+.tienda-buscador-card {
+    margin-top: -45px;
+    position: relative;
+    z-index: 2;
 }
 
 /* ---------- Recuadros de categoría ---------- */

@@ -3,101 +3,123 @@
 
 {% block content %}
 
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-  <h2 class="fw-bold mb-0">Nuestra tienda</h2>
-  <form method="GET" class="d-flex" style="max-width:320px;">
-    <input type="text" name="q" value="{{ busqueda }}"
-           class="form-control rounded-pill me-2" placeholder="Buscar producto...">
-    <button class="btn btn-primary rounded-pill px-3">Buscar</button>
-  </form>
-</div>
+<!-- Banner principal de la tienda -->
+{% set banner_titulo = 'Tienda' %}
+{% include 'partials/banner.html' %}
 
-<!-- Filtro de categorías (chips) -->
-<div class="d-flex flex-wrap gap-2 mb-4">
-  <a href="{{ url_for('public.tienda') }}"
-     class="btn btn-sm rounded-pill {{ 'btn-primary' if not categoria_id else 'btn-outline-primary' }}">Todas</a>
-  {% for cat in categorias %}
-  <a href="{{ url_for('public.tienda', categoria=cat.id) }}"
-     class="btn btn-sm rounded-pill {{ 'btn-primary' if categoria_id == cat.id else 'btn-outline-primary' }}">{{ cat.nombre }}</a>
-  {% endfor %}
-</div>
-
-<p class="text-muted mb-3">{{ productos.total }} producto(s) encontrado(s)</p>
-
-{% if productos.items %}
-<div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
-  {% for p in productos.items %}
-  <div class="col">
-    <div class="card h-100">
-      <div class="position-relative">
-        <a href="{{ url_for('public.detalle_producto', id=p.id) }}">
-          {% if p.imagen %}
-            <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
-                 class="card-img-top" style="height:180px;object-fit:cover;" alt="{{ p.nombre }}">
-          {% else %}
-            <div class="d-flex align-items-center justify-content-center text-muted"
-                 style="height:180px;background:#f3eef0;">Sin imagen</div>
-          {% endif %}
-        </a>
-        <form method="POST" action="{{ url_for('public.toggle_favorito', id=p.id) }}"
-              class="position-absolute top-0 end-0 m-2">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn btn-light btn-sm rounded-circle shadow-sm px-2" title="Favorito">
-            {% if p.id in favoritos_ids %}
-              <i class="bi bi-heart-fill text-danger"></i>
-            {% else %}
-              <i class="bi bi-heart"></i>
-            {% endif %}
-          </button>
-        </form>
+<!-- Tarjeta con título + búsqueda, superpuesta al banner -->
+<div class="tienda-buscador-card bg-white rounded-3 shadow p-4 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <h2 class="fw-bold mb-0">Todo lo que necesitas</h2>
+    <form method="GET" class="flex-grow-1" style="max-width:420px;">
+      <div class="input-group">
+        <input type="text" name="q" value="{{ busqueda }}" class="form-control"
+               placeholder="Buscar producto...">
+        <button class="btn btn-primary px-4"><i class="bi bi-search"></i> Buscar</button>
       </div>
-      <div class="card-body">
-        <h6 class="card-title mb-1">{{ p.nombre }}</h6>
-        {% if p.categoria %}<span class="badge bg-secondary mb-2">{{ p.categoria.nombre }}</span>{% endif %}
-        <p class="text-primary fw-bold fs-5 mb-1">${{ "%.2f"|format(p.precio) }}</p>
-      </div>
-      <div class="card-footer bg-transparent border-0 pt-0 d-grid gap-2">
-        <a href="{{ url_for('public.detalle_producto', id=p.id) }}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
-        <form method="POST" action="{{ url_for('public.agregar_carrito', id=p.id) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="cantidad" value="1">
-          <button class="btn btn-sm btn-primary w-100" {% if not p.tiene_stock() %}disabled{% endif %}>
-            {% if p.tiene_stock() %}🛒 Agregar{% else %}Sin stock{% endif %}
-          </button>
-        </form>
-      </div>
-    </div>
+    </form>
   </div>
-  {% endfor %}
 </div>
 
-<!-- Paginación -->
-<nav class="mt-5">
-  <ul class="pagination justify-content-center">
-    {% if productos.has_prev %}
-    <li class="page-item"><a class="page-link" href="{{ url_for('public.tienda', pagina=productos.prev_num, categoria=categoria_id, q=busqueda) }}">Anterior</a></li>
-    {% endif %}
-    {% for num in productos.iter_pages() %}
-      {% if num %}
-      <li class="page-item {% if num == productos.page %}active{% endif %}">
-        <a class="page-link" href="{{ url_for('public.tienda', pagina=num, categoria=categoria_id, q=busqueda) }}">{{ num }}</a>
-      </li>
-      {% else %}
-      <li class="page-item disabled"><span class="page-link">…</span></li>
-      {% endif %}
-    {% endfor %}
-    {% if productos.has_next %}
-    <li class="page-item"><a class="page-link" href="{{ url_for('public.tienda', pagina=productos.next_num, categoria=categoria_id, q=busqueda) }}">Siguiente</a></li>
-    {% endif %}
-  </ul>
-</nav>
+<div class="row">
 
-{% else %}
-<div class="text-center text-muted py-5">
-  <div class="fs-1 mb-2">🔍</div>
-  <p>No se encontraron productos.</p>
-  <a href="{{ url_for('public.tienda') }}" class="btn btn-outline-primary rounded-pill">Ver todo</a>
+  <!-- Sidebar de categorías -->
+  <aside class="col-lg-3 mb-4">
+    <h5 class="fw-bold mb-3">Categorías</h5>
+    <div class="list-group">
+      <a href="{{ url_for('public.tienda') }}"
+         class="list-group-item list-group-item-action {% if not categoria_id %}active{% endif %}">
+        Todas
+      </a>
+      {% for cat in categorias %}
+      <a href="{{ url_for('public.tienda', categoria=cat.id) }}"
+         class="list-group-item list-group-item-action {% if categoria_id == cat.id %}active{% endif %}">
+        {{ cat.nombre }}
+      </a>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <!-- Productos -->
+  <div class="col-lg-9">
+    <p class="text-muted mb-3">{{ productos.total }} producto(s) encontrado(s)</p>
+
+    {% if productos.items %}
+    <div class="row row-cols-2 row-cols-lg-3 g-4">
+      {% for p in productos.items %}
+      <div class="col">
+        <div class="card h-100">
+          <div class="position-relative">
+            <a href="{{ url_for('public.detalle_producto', id=p.id) }}">
+              {% if p.imagen %}
+                <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
+                     class="card-img-top" style="height:180px;object-fit:cover;" alt="{{ p.nombre }}">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center text-muted"
+                     style="height:180px;background:#f3eef0;">Sin imagen</div>
+              {% endif %}
+            </a>
+            <form method="POST" action="{{ url_for('public.toggle_favorito', id=p.id) }}"
+                  class="position-absolute top-0 end-0 m-2">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-light btn-sm rounded-circle shadow-sm px-2" title="Favorito">
+                {% if p.id in favoritos_ids %}
+                  <i class="bi bi-heart-fill text-danger"></i>
+                {% else %}
+                  <i class="bi bi-heart"></i>
+                {% endif %}
+              </button>
+            </form>
+          </div>
+          <div class="card-body">
+            <h6 class="card-title mb-1">{{ p.nombre }}</h6>
+            {% if p.categoria %}<span class="badge bg-secondary mb-2">{{ p.categoria.nombre }}</span>{% endif %}
+            <p class="text-primary fw-bold fs-5 mb-1">${{ "%.2f"|format(p.precio) }}</p>
+          </div>
+          <div class="card-footer bg-transparent border-0 pt-0 d-grid gap-2">
+            <a href="{{ url_for('public.detalle_producto', id=p.id) }}" class="btn btn-sm btn-outline-primary">Ver detalle</a>
+            <form method="POST" action="{{ url_for('public.agregar_carrito', id=p.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="cantidad" value="1">
+              <button class="btn btn-sm btn-primary w-100" {% if not p.tiene_stock() %}disabled{% endif %}>
+                {% if p.tiene_stock() %}<i class="bi bi-cart"></i> Agregar{% else %}Sin stock{% endif %}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    <nav class="mt-5">
+      <ul class="pagination justify-content-center">
+        {% if productos.has_prev %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('public.tienda', pagina=productos.prev_num, categoria=categoria_id, q=busqueda) }}">Anterior</a></li>
+        {% endif %}
+        {% for num in productos.iter_pages() %}
+          {% if num %}
+          <li class="page-item {% if num == productos.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('public.tienda', pagina=num, categoria=categoria_id, q=busqueda) }}">{{ num }}</a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+          {% endif %}
+        {% endfor %}
+        {% if productos.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('public.tienda', pagina=productos.next_num, categoria=categoria_id, q=busqueda) }}">Siguiente</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <div class="fs-1 mb-2"><i class="bi bi-search"></i></div>
+      <p>No se encontraron productos.</p>
+      <a href="{{ url_for('public.tienda') }}" class="btn btn-outline-primary rounded-pill">Ver todo</a>
+    </div>
+    {% endif %}
+  </div>
 </div>
-{% endif %}
 
 {% endblock %}
