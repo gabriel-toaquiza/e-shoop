@@ -49,6 +49,12 @@
                         <button class="btn btn-sm btn-outline-success">Activar</button>
                     {% endif %}
                 </form>
+                <button type="button" class="btn btn-sm btn-danger"
+                        data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                        data-url="{{ url_for('admin.eliminar_categoria', id=c.id) }}"
+                        data-nombre="{{ c.nombre }}" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                </button>
             </td>
         </tr>
         {% endfor %}
@@ -58,4 +64,6 @@
 <p class="text-muted">No hay categorías registradas.
    <a href="{{ url_for('admin.crear_categoria') }}">Crea la primera</a>.</p>
 {% endif %}
+
+{% include 'admin/_modal_eliminar.html' %}
 {% endblock %}

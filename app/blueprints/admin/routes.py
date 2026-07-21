@@ -172,6 +172,25 @@ def toggle_categoria(id):
     return redirect(url_for('admin.categorias'))
 
 
+@admin_bp.route('/categorias/<int:id>/eliminar', methods=['POST'])
+@login_required
+@admin_requerido
+def eliminar_categoria(id):
+    categoria = Categoria.query.get_or_404(id)
+    # No se puede borrar si tiene productos (rompería las claves foráneas)
+    if categoria.productos:
+        flash('No se puede eliminar: la categoría tiene productos asociados. '
+              'Elimina o mueve esos productos primero.', 'warning')
+        return redirect(url_for('admin.categorias'))
+
+    nombre = categoria.nombre
+    eliminar_imagen(categoria.imagen)
+    db.session.delete(categoria)
+    db.session.commit()
+    flash(f'Categoría "{nombre}" eliminada.', 'success')
+    return redirect(url_for('admin.categorias'))
+
+
 # ── CRUD PRODUCTOS ────────────────────────────────────────────────
 @admin_bp.route('/productos')
 @login_required
@@ -317,6 +336,29 @@ def toggle_producto(id):
     db.session.commit()
     estado = 'activado' if producto.activo else 'desactivado'
     flash(f'Producto "{producto.nombre}" {estado}.', 'info')
+    return redirect(url_for('admin.productos'))
+
+
+@admin_bp.route('/productos/<int:id>/eliminar', methods=['POST'])
+@login_required
+@admin_requerido
+def eliminar_producto(id):
+    producto = Producto.query.get_or_404(id)
+    # No se puede borrar si está en pedidos (rompería el historial)
+    if producto.detalles:
+        flash('No se puede eliminar: el producto tiene pedidos asociados. '
+              'Desactívalo en su lugar.', 'warning')
+        return redirect(url_for('admin.productos'))
+
+    nombre = producto.nombre
+    # Borrar sus imágenes del disco
+    eliminar_imagen(producto.imagen)
+    for img in producto.lista_imagenes():
+        eliminar_imagen(img)
+
+    db.session.delete(producto)
+    db.session.commit()
+    flash(f'Producto "{nombre}" eliminado.', 'success')
     return redirect(url_for('admin.productos'))
 
 

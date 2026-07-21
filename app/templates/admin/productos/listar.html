@@ -65,6 +65,12 @@
                         <button class="btn btn-sm btn-outline-success">Activar</button>
                     {% endif %}
                 </form>
+                <button type="button" class="btn btn-sm btn-danger"
+                        data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                        data-url="{{ url_for('admin.eliminar_producto', id=p.id) }}"
+                        data-nombre="{{ p.nombre }}" title="Eliminar">
+                    <i class="bi bi-trash"></i>
+                </button>
             </td>
         </tr>
         {% endfor %}
@@ -74,4 +80,6 @@
 <p class="text-muted">No hay productos registrados.
    <a href="{{ url_for('admin.crear_producto') }}">Crea el primero</a>.</p>
 {% endif %}
+
+{% include 'admin/_modal_eliminar.html' %}
 {% endblock %}
