@@ -27,22 +27,26 @@ EXTENSIONES_IMG = {'jpg', 'jpeg', 'webp'}
 
 
 # ── HELPERS DE IMAGEN ─────────────────────────────────────────────
-def guardar_imagen(archivo):
-    """Guarda la imagen subida en static/img con un nombre único y lo devuelve."""
+def guardar_imagen(archivo, subcarpeta=''):
+    """Guarda la imagen en static/img/<subcarpeta> con nombre único.
+
+    Devuelve la ruta relativa a static/img (p. ej. 'productos/abc.jpg'),
+    usando siempre '/' para que sirva tanto en la URL como en disco.
+    """
     nombre_seguro = secure_filename(archivo.filename)
     extension     = os.path.splitext(nombre_seguro)[1].lower()
     nombre_unico  = f"{uuid.uuid4().hex}{extension}"
-    carpeta       = os.path.join(current_app.root_path, 'static', 'img')
+    carpeta       = os.path.join(current_app.root_path, 'static', 'img', subcarpeta)
     os.makedirs(carpeta, exist_ok=True)
     archivo.save(os.path.join(carpeta, nombre_unico))
-    return nombre_unico
+    return f"{subcarpeta}/{nombre_unico}" if subcarpeta else nombre_unico
 
 
 def eliminar_imagen(nombre):
     """Elimina un archivo de static/img si existe (para no dejar huérfanos)."""
     if not nombre:
         return
-    ruta = os.path.join(current_app.root_path, 'static', 'img', nombre)
+    ruta = os.path.join(current_app.root_path, 'static', 'img', *nombre.split('/'))
     if os.path.exists(ruta):
         os.remove(ruta)
 
@@ -125,7 +129,7 @@ def crear_categoria():
             activa      = form.activa.data
         )
         if hay_imagen_nueva(form.imagen):
-            categoria.imagen = guardar_imagen(form.imagen.data)
+            categoria.imagen = guardar_imagen(form.imagen.data, 'categorias')
         db.session.add(categoria)
         db.session.commit()
         flash('Categoría creada correctamente.', 'success')
@@ -147,7 +151,7 @@ def editar_categoria(id):
 
         imagen_anterior = categoria.imagen
         if hay_imagen_nueva(form.imagen):
-            categoria.imagen = guardar_imagen(form.imagen.data)
+            categoria.imagen = guardar_imagen(form.imagen.data, 'categorias')
         elif form.quitar_imagen.data and categoria.imagen:
             categoria.imagen = None
 
@@ -226,7 +230,7 @@ def crear_producto():
 
         # Portada
         if hay_imagen_nueva(form.imagen):
-            producto.imagen = guardar_imagen(form.imagen.data)
+            producto.imagen = guardar_imagen(form.imagen.data, 'productos')
             guardadas.append(producto.imagen)
 
         # Imágenes adicionales (galería), máximo MAX_IMAGENES
@@ -235,7 +239,7 @@ def crear_producto():
             if len(adicionales) >= MAX_IMAGENES:
                 break
             if isinstance(archivo, FileStorage) and archivo.filename and _extension_valida(archivo.filename):
-                nombre = guardar_imagen(archivo)
+                nombre = guardar_imagen(archivo, 'productos')
                 adicionales.append(nombre)
                 guardadas.append(nombre)
         if adicionales:
@@ -284,7 +288,7 @@ def editar_producto(id):
         imagen_anterior = producto.imagen
         imagen_nueva    = None
         if hay_imagen_nueva(form.imagen):
-            imagen_nueva    = guardar_imagen(form.imagen.data)
+            imagen_nueva    = guardar_imagen(form.imagen.data, 'productos')
             producto.imagen = imagen_nueva
         elif form.quitar_imagen.data and producto.imagen:
             producto.imagen = None
@@ -299,7 +303,7 @@ def editar_producto(id):
             if len(adicionales) >= MAX_IMAGENES:
                 break
             if isinstance(archivo, FileStorage) and archivo.filename and _extension_valida(archivo.filename):
-                nombre = guardar_imagen(archivo)
+                nombre = guardar_imagen(archivo, 'productos')
                 adicionales.append(nombre)
                 nuevas_guardadas.append(nombre)
         producto.imagenes = ','.join(adicionales) if adicionales else None
