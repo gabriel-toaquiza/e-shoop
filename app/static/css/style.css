@@ -246,10 +246,13 @@ footer a {
 
 /* ---------- Recuadros de categoría ---------- */
 .categoria-box {
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 150px;
+    padding: 1rem;
     border-radius: .5rem;
     text-decoration: none;
     background: linear-gradient(135deg, #f3e3ec, var(--marca-secundario));
@@ -257,11 +260,19 @@ footer a {
     background-position: center;
     transition: transform .18s ease, box-shadow .18s ease;
 }
+/* Velo rosa uniforme sobre la foto (--marca-secundario: #FAD6EF) */
+.categoria-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(250, 214, 239, .55);
+}
 .categoria-box:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 24px rgba(91, 26, 46, .15);
 }
 .categoria-label {
+    position: relative;      /* por encima del velo de color */
     background: #ffffff;
     color: var(--marca-principal);
     font-weight: 600;
@@ -269,6 +280,32 @@ footer a {
     border-radius: 50rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
     text-align: center;
+}
+
+/* Cuarta caja: la categoría más vendida */
+.categoria-box-destacada {
+    outline: 2px solid var(--marca-principal);
+    outline-offset: -2px;
+}
+/* Velo en vino para diferenciarla de las otras tres */
+.categoria-box-destacada::before {
+    background: rgba(91, 26, 46, .55);
+}
+.categoria-insignia {
+    position: absolute;
+    top: .6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--marca-principal);
+    color: #ffffff;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: .25rem .7rem;
+    border-radius: 50rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+    white-space: nowrap;
 }
 
 /* ---------- Selector de cantidad (detalle de producto) ---------- */

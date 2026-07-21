@@ -1,9 +1,26 @@
 from urllib.parse import urlparse
 from flask import render_template, redirect, url_for, flash, request, session, abort
 from flask_login import login_required, current_user
+from sqlalchemy import func
 from app import db
 from app.models import Producto, Categoria, Pedido, DetallePedido
 from app.blueprints.public import public_bp
+
+# Estados que cuentan como una venta concretada (igual que en el panel de admin)
+ESTADOS_VENTA = ('pagado', 'enviado', 'entregado')
+
+
+def _categoria_mas_vendida():
+    """Categoría activa con más unidades vendidas. None si todavía no hay ventas."""
+    fila = (db.session.query(Categoria)
+            .join(Producto, Producto.categoria_id == Categoria.id)
+            .join(DetallePedido, DetallePedido.producto_id == Producto.id)
+            .join(Pedido, Pedido.id == DetallePedido.pedido_id)
+            .filter(Categoria.activa.is_(True), Pedido.estado.in_(ESTADOS_VENTA))
+            .group_by(Categoria.id)
+            .order_by(func.sum(DetallePedido.cantidad).desc())
+            .first())
+    return fila
 
 
 def _volver_atras(fallback):
@@ -20,10 +37,18 @@ def home():
     productos_destacados = (Producto.query.join(Categoria)
                             .filter(Producto.activo == True, Categoria.activa == True)
                             .limit(8).all())
-    categorias = Categoria.query.filter_by(activa=True).all()
+    # La más vendida se destaca aparte, así que se excluye de las otras 3
+    mas_vendida = _categoria_mas_vendida()
+    consulta = Categoria.query.filter_by(activa=True)
+    if mas_vendida:
+        consulta = consulta.filter(Categoria.id != mas_vendida.id)
+    # Sin ventas todavía: se rellenan las 4 casillas con categorías normales
+    categorias = consulta.order_by(Categoria.nombre).limit(3 if mas_vendida else 4).all()
+
     return render_template('public/home.html',
                            productos=productos_destacados,
-                           categorias=categorias)
+                           categorias=categorias,
+                           mas_vendida=mas_vendida)
 
 
 # ── TIENDA ────────────────────────────────────────────────────────

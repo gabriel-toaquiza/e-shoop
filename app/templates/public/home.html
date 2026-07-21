@@ -16,23 +16,35 @@
 </div>
 
 <!-- ===== CATEGORÍAS ===== -->
+{% if categorias %}
+<h2 class="text-center fw-bold mb-4 text-primary">Nuestras categorías</h2>
 <div class="row g-3 mb-5">
+  {% for c in categorias %}
   <div class="col-6 col-md-3">
-    <a href="{{ url_for('public.tienda') }}" class="categoria-box"><span class="categoria-label">Bolsos</span></a>
+    <a href="{{ url_for('public.tienda', categoria=c.id) }}" class="categoria-box"
+       {% if c.imagen %}style="background-image: url('{{ url_for('static', filename='img/' + c.imagen) }}');"{% endif %}
+       title="Ver productos de {{ c.nombre }}">
+      <span class="categoria-label">{{ c.nombre }}</span>
+    </a>
   </div>
+  {% endfor %}
+
+  {% if mas_vendida %}
   <div class="col-6 col-md-3">
-    <a href="{{ url_for('public.tienda') }}" class="categoria-box"><span class="categoria-label">Cuadros</span></a>
+    <a href="{{ url_for('public.tienda', categoria=mas_vendida.id) }}"
+       class="categoria-box categoria-box-destacada"
+       {% if mas_vendida.imagen %}style="background-image: url('{{ url_for('static', filename='img/' + mas_vendida.imagen) }}');"{% endif %}
+       title="Ver productos de {{ mas_vendida.nombre }}">
+      <span class="categoria-insignia"><i class="bi bi-star-fill"></i> Más vendida</span>
+      <span class="categoria-label">{{ mas_vendida.nombre }}</span>
+    </a>
   </div>
-  <div class="col-6 col-md-3">
-    <a href="{{ url_for('public.tienda') }}" class="categoria-box"><span class="categoria-label">Decoración de Casa</span></a>
-  </div>
-  <div class="col-6 col-md-3">
-    <a href="#productos-destacados" class="categoria-box"><span class="categoria-label">Más Vendidos</span></a>
-  </div>
+  {% endif %}
 </div>
+{% endif %}
 
 <!-- ===== PRODUCTOS DESTACADOS ===== -->
-<h2 class="text-center fw-bold mb-4" id="productos-destacados">Productos destacados</h2>
+<h2 class="text-center fw-bold mb-4 text-primary" id="productos-destacados">Productos destacados</h2>
 {% if productos %}
 <div class="row row-cols-2 row-cols-md-4 g-4">
   {% for p in productos %}
@@ -91,7 +103,7 @@
     </div>
   </div>
   <div class="col-md-7">
-    <h2 class="fw-bold mb-3">Hecho a mano con amor</h2>
+    <h2 class="fw-bold mb-3 text-primary">Hecho a mano con amor</h2>
     <p class="mb-4">
       Cada totebag, cuadro y pieza de decoración nace de un proceso artesanal
       donde cuidamos cada detalle. Creamos productos únicos, pensados para darle
