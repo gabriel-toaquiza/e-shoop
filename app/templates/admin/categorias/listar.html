@@ -10,11 +10,36 @@
     </div>
 </div>
 
+<!-- Filtros -->
+<form method="GET" class="row g-2 align-items-end mb-3">
+    <div class="col-md-6">
+        <label class="form-label small mb-1">Buscar</label>
+        <input type="search" name="q" value="{{ q }}" class="form-control"
+               placeholder="Nombre de la categoría...">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small mb-1">Estado</label>
+        <select name="estado" class="form-select">
+            <option value=""         {% if estado == ''         %}selected{% endif %}>Todas</option>
+            <option value="activa"   {% if estado == 'activa'   %}selected{% endif %}>Activas</option>
+            <option value="inactiva" {% if estado == 'inactiva' %}selected{% endif %}>Inactivas</option>
+        </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+        <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel"></i> Filtrar</button>
+        {% if q or estado %}
+            <a href="{{ url_for('admin.categorias') }}" class="btn btn-outline-secondary">Limpiar</a>
+        {% endif %}
+    </div>
+</form>
+
+<p class="text-muted small">Mostrando {{ categorias|length }} de {{ total }} categorías.</p>
+
 {% if categorias %}
 <table class="table table-hover align-middle">
     <thead>
         <tr>
-            <th>#</th>
+            <th>Imagen</th>
             <th>Nombre</th>
             <th>Descripción</th>
             <th class="text-center">Productos</th>
@@ -25,7 +50,15 @@
     <tbody>
         {% for c in categorias %}
         <tr>
-            <td>{{ c.id }}</td>
+            <td>
+                {% if c.imagen %}
+                    <img src="{{ url_for('static', filename='img/' + c.imagen) }}"
+                         alt="{{ c.nombre }}" width="48" height="48"
+                         style="object-fit: cover;" class="rounded">
+                {% else %}
+                    <span class="text-muted small">Sin imagen</span>
+                {% endif %}
+            </td>
             <td>{{ c.nombre }}</td>
             <td>{{ c.descripcion or '—' }}</td>
             <td class="text-center">{{ c.productos|length }}</td>
@@ -60,6 +93,9 @@
         {% endfor %}
     </tbody>
 </table>
+{% elif q or estado %}
+<p class="text-muted">Ninguna categoría coincide con el filtro.
+   <a href="{{ url_for('admin.categorias') }}">Ver todas</a>.</p>
 {% else %}
 <p class="text-muted">No hay categorías registradas.
    <a href="{{ url_for('admin.crear_categoria') }}">Crea la primera</a>.</p>

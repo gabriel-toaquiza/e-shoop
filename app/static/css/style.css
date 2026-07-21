@@ -182,6 +182,15 @@ footer a {
 .hero h1 {
     font-size: clamp(2.4rem, 5vw, 3.8rem);
     line-height: 1.08;
+    letter-spacing: -.05em;   /* junta las letras para que se lean mejor */
+}
+.hero p {
+    letter-spacing: -.04em;
+}
+/* Hero con imagen clara: texto en el color de marca */
+.hero-claro {
+    color: var(--marca-principal);
+    background-color: var(--marca-fondo);   /* respaldo si falta la imagen */
 }
 /* Hero a todo el ancho de la web (borde a borde y pegado al navbar) */
 .hero-full {
@@ -193,6 +202,18 @@ footer a {
     min-height: 78vh;        /* ocupa buena parte de la pantalla */
 }
 
+/* ---------- Logotipo de marca ---------- */
+.logo-navbar {
+    height: 34px;
+    width: auto;
+    display: block;
+}
+.logo-footer {
+    height: 30px;
+    width: auto;
+    display: block;
+}
+
 /* ---------- Banner reutilizable (a todo el ancho) ---------- */
 .page-banner {
     width: 100vw;
@@ -200,12 +221,21 @@ footer a {
     margin-right: calc(50% - 50vw);
     margin-top: -2rem;       /* cancela el padding del contenedor: pega al navbar */
     min-height: 380px;
-    background-color: var(--marca-principal-oscuro);   /* respaldo si falta la imagen */
     background-size: cover;
     background-position: center;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+/* Banner con imagen clara: título en color de marca */
+.page-banner-claro {
+    background-color: var(--marca-fondo);              /* respaldo si falta la imagen */
+    color: var(--marca-principal);
+}
+/* Banner con imagen oscura: título en blanco */
+.page-banner-oscuro {
+    background-color: var(--marca-principal-oscuro);   /* respaldo si falta la imagen */
+    color: #ffffff;
 }
 /* Tarjeta de búsqueda superpuesta al borde inferior del banner */
 .tienda-buscador-card {

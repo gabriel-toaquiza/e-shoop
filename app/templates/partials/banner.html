@@ -1,6 +1,13 @@
-<div class="page-banner"
-     style="background-image: linear-gradient(rgba(30,10,15,.5), rgba(30,10,15,.55)), url('{{ url_for('static', filename='img/' + (banner_img | default('banner.jpg'))) }}');">
-  <div class="text-center text-white px-3 w-100">
+{# Banner reutilizable.
+   banner_titulo : texto del título
+   banner_img    : ruta dentro de static/img (por defecto el banner estándar)
+   banner_tema   : 'claro' (imagen blanca -> texto vino) | 'oscuro' (imagen oscura -> texto blanco)
+#}
+{% set _img  = banner_img  | default('banners/BannerEstandar.jpg') %}
+{% set _tema = banner_tema | default('claro') %}
+<div class="page-banner page-banner-{{ _tema }}"
+     style="background-image: {% if _tema == 'oscuro' %}linear-gradient(rgba(30,10,15,.5), rgba(30,10,15,.55)), {% endif %}url('{{ url_for('static', filename='img/' + _img) }}');">
+  <div class="text-center px-3 w-100">
     <h1 class="display-3 fw-bold mb-0">{{ banner_titulo }}</h1>
   </div>
 </div>

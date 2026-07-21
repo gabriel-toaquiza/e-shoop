@@ -51,6 +51,11 @@ def eliminar_imagen(nombre):
         os.remove(ruta)
 
 
+def _escapar_like(texto):
+    """Escapa los comodines de LIKE para que el usuario no los use por error."""
+    return texto.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')
+
+
 def hay_imagen_nueva(campo):
     """True solo si el campo trae un archivo realmente subido (no un nombre previo)."""
     return isinstance(campo.data, FileStorage) and bool(campo.data.filename)
@@ -113,8 +118,22 @@ def dashboard():
 @login_required
 @admin_requerido
 def categorias():
-    categorias = Categoria.query.order_by(Categoria.nombre).all()
-    return render_template('admin/categorias/listar.html', categorias=categorias)
+    q      = (request.args.get('q') or '').strip()
+    estado = request.args.get('estado') or ''
+
+    consulta = Categoria.query
+    if q:
+        consulta = consulta.filter(Categoria.nombre.ilike(f'%{_escapar_like(q)}%', escape='\\'))
+    if estado == 'activa':
+        consulta = consulta.filter(Categoria.activa.is_(True))
+    elif estado == 'inactiva':
+        consulta = consulta.filter(Categoria.activa.is_(False))
+
+    categorias = consulta.order_by(Categoria.nombre).all()
+    return render_template('admin/categorias/listar.html',
+                           categorias=categorias,
+                           total=Categoria.query.count(),
+                           q=q, estado=estado)
 
 
 @admin_bp.route('/categorias/crear', methods=['GET', 'POST'])
@@ -173,7 +192,7 @@ def toggle_categoria(id):
     db.session.commit()
     estado = 'activada' if categoria.activa else 'desactivada'
     flash(f'Categoría "{categoria.nombre}" {estado}.', 'info')
-    return redirect(url_for('admin.categorias'))
+    return _redirigir_seguro(request.referrer, url_for('admin.categorias'))
 
 
 @admin_bp.route('/categorias/<int:id>/eliminar', methods=['POST'])
@@ -185,14 +204,14 @@ def eliminar_categoria(id):
     if categoria.productos:
         flash('No se puede eliminar: la categoría tiene productos asociados. '
               'Elimina o mueve esos productos primero.', 'warning')
-        return redirect(url_for('admin.categorias'))
+        return _redirigir_seguro(request.referrer, url_for('admin.categorias'))
 
     nombre = categoria.nombre
     eliminar_imagen(categoria.imagen)
     db.session.delete(categoria)
     db.session.commit()
     flash(f'Categoría "{nombre}" eliminada.', 'success')
-    return redirect(url_for('admin.categorias'))
+    return _redirigir_seguro(request.referrer, url_for('admin.categorias'))
 
 
 # ── CRUD PRODUCTOS ────────────────────────────────────────────────
@@ -200,9 +219,30 @@ def eliminar_categoria(id):
 @login_required
 @admin_requerido
 def productos():
-    productos = Producto.query.order_by(Producto.nombre).all()
+    q         = (request.args.get('q') or '').strip()
+    categoria = request.args.get('categoria', type=int)
+    estado    = request.args.get('estado') or ''
+    stock     = request.args.get('stock') or ''
+
+    consulta = Producto.query
+    if q:
+        consulta = consulta.filter(Producto.nombre.ilike(f'%{_escapar_like(q)}%', escape='\\'))
+    if categoria:
+        consulta = consulta.filter(Producto.categoria_id == categoria)
+    if estado == 'activo':
+        consulta = consulta.filter(Producto.activo.is_(True))
+    elif estado == 'inactivo':
+        consulta = consulta.filter(Producto.activo.is_(False))
+    if stock == 'bajo':
+        consulta = consulta.filter(Producto.stock <= STOCK_MINIMO)
+
+    productos = consulta.order_by(Producto.nombre).all()
     return render_template('admin/productos/listar.html',
-                           productos=productos, stock_minimo=STOCK_MINIMO)
+                           productos=productos,
+                           total=Producto.query.count(),
+                           categorias=Categoria.query.order_by(Categoria.nombre).all(),
+                           stock_minimo=STOCK_MINIMO,
+                           q=q, categoria=categoria, estado=estado, stock=stock)
 
 
 @admin_bp.route('/productos/crear', methods=['GET', 'POST'])
@@ -340,7 +380,7 @@ def toggle_producto(id):
     db.session.commit()
     estado = 'activado' if producto.activo else 'desactivado'
     flash(f'Producto "{producto.nombre}" {estado}.', 'info')
-    return redirect(url_for('admin.productos'))
+    return _redirigir_seguro(request.referrer, url_for('admin.productos'))
 
 
 @admin_bp.route('/productos/<int:id>/eliminar', methods=['POST'])
@@ -352,7 +392,7 @@ def eliminar_producto(id):
     if producto.detalles:
         flash('No se puede eliminar: el producto tiene pedidos asociados. '
               'Desactívalo en su lugar.', 'warning')
-        return redirect(url_for('admin.productos'))
+        return _redirigir_seguro(request.referrer, url_for('admin.productos'))
 
     nombre = producto.nombre
     # Borrar sus imágenes del disco
@@ -363,7 +403,7 @@ def eliminar_producto(id):
     db.session.delete(producto)
     db.session.commit()
     flash(f'Producto "{nombre}" eliminado.', 'success')
-    return redirect(url_for('admin.productos'))
+    return _redirigir_seguro(request.referrer, url_for('admin.productos'))
 
 
 # ── GESTIÓN DE CLIENTES ───────────────────────────────────────────

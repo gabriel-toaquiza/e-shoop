@@ -4,13 +4,13 @@
 {% block content %}
 
 <!-- ===== HERO ===== -->
-<div class="hero hero-full mb-5"
-     style="background-image: linear-gradient(rgba(30,10,15,.45), rgba(30,10,15,.55)), url('{{ url_for('static', filename='img/hero.jpg') }}');">
+<div class="hero hero-full hero-claro mb-5"
+     style="background-image: url('{{ url_for('static', filename='img/banners/BannerHomeBlanco.jpg') }}');">
   <div class="container">
     <div class="col-lg-6">
       <h1 class="fw-bold mb-3">El arte de lo hecho a mano</h1>
       <p class="fs-5 mb-4">Totebags, cuadros y decoración únicos para darle calidez a tu espacio.</p>
-      <a href="{{ url_for('public.tienda') }}" class="btn btn-light btn-lg fw-semibold px-4">Ver colección →</a>
+      <a href="{{ url_for('public.tienda') }}" class="btn btn-primary btn-lg fw-semibold px-4">Ver colección →</a>
     </div>
   </div>
 </div>
