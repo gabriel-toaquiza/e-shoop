@@ -2,7 +2,8 @@
 {% block title %}Pedido #{{ pedido.id }}{% endblock %}
 
 {% block content %}
-{% set colores = {'pendiente':'warning','pagado':'info','enviado':'primary','entregado':'success','cancelado':'danger'} %}
+{% set colores = {'en_verificacion':'info','pagado':'primary','enviado':'primary','entregado':'success','rechazado':'warning','cancelado':'danger'} %}
+{% set etiquetas = {'en_verificacion':'En verificación','pagado':'Pagado','enviado':'Enviado','entregado':'Entregado','rechazado':'Rechazado','cancelado':'Cancelado'} %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">Pedido #{{ pedido.id }}</h2>
@@ -14,13 +15,23 @@
         <p class="mb-1"><strong>Cliente:</strong> {{ pedido.cliente.nombre if pedido.cliente else '—' }}</p>
         <p class="mb-1"><strong>Email:</strong> {{ pedido.cliente.email if pedido.cliente else '—' }}</p>
         <p class="mb-1"><strong>Fecha:</strong> {{ pedido.fecha.strftime('%d/%m/%Y %H:%M') if pedido.fecha else '—' }}</p>
+        <p class="mb-1"><strong>Recibe:</strong> {{ pedido.nombre_receptor or '—' }}</p>
+        <p class="mb-1"><strong>Cédula:</strong> {{ pedido.cedula or '—' }}</p>
     </div>
     <div class="col-md-6">
         <p class="mb-1"><strong>Estado:</strong>
-            <span class="badge bg-{{ colores.get(pedido.estado, 'secondary') }}">{{ pedido.estado }}</span>
+            <span class="badge bg-{{ colores.get(pedido.estado, 'secondary') }}">{{ etiquetas.get(pedido.estado, pedido.estado) }}</span>
         </p>
         <p class="mb-1"><strong>Dirección:</strong> {{ pedido.direccion or '—' }}</p>
         <p class="mb-1"><strong>Notas:</strong> {{ pedido.notas or '—' }}</p>
+        <p class="mb-1"><strong>Comprobante:</strong>
+            {% if pedido.comprobante %}
+                <a href="{{ url_for('public.ver_comprobante', id=pedido.id) }}" target="_blank"
+                   class="btn btn-sm btn-outline-primary py-0"><i class="bi bi-receipt"></i> Ver comprobante</a>
+            {% else %}
+                <span class="text-muted">Aún no subido</span>
+            {% endif %}
+        </p>
     </div>
 </div>
 
@@ -61,8 +72,24 @@
 </table>
 
 <!-- Acciones de estado -->
-<div class="d-flex gap-2 mt-3">
-    {% if pedido.estado in ['pendiente','pagado','enviado'] %}
+<div class="d-flex gap-2 mt-3 flex-wrap">
+    {% if pedido.estado in ['en_verificacion','rechazado'] %}
+    <form action="{{ url_for('admin.confirmar_pago', id=pedido.id) }}"
+          method="POST"
+          onsubmit="return confirm('¿Confirmar que el pago llegó a tu cuenta? Se descontará el stock.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-success"><i class="bi bi-check-lg"></i> Confirmar pago</button>
+    </form>
+    {% endif %}
+    {% if pedido.estado == 'en_verificacion' %}
+    <form action="{{ url_for('admin.rechazar_pago', id=pedido.id) }}"
+          method="POST"
+          onsubmit="return confirm('¿Rechazar el comprobante? El cliente podrá subir otro.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline-warning"><i class="bi bi-x-lg"></i> Rechazar comprobante</button>
+    </form>
+    {% endif %}
+    {% if pedido.estado in ['pagado','enviado'] %}
     <form action="{{ url_for('admin.avanzar_pedido', id=pedido.id) }}"
           method="POST"
           onsubmit="return confirm('¿Avanzar el pedido al siguiente estado?');">

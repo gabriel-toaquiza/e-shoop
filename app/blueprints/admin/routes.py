@@ -18,8 +18,8 @@ STOCK_MINIMO = 5
 # Estados que cuentan como una venta concretada
 ESTADOS_VENTA = ('pagado', 'enviado', 'entregado')
 
-# Flujo ordenado de estados de un pedido
-FLUJO_PEDIDO = ['pendiente', 'pagado', 'enviado', 'entregado']
+# Flujo ordenado de estados una vez confirmado el pago
+FLUJO_PEDIDO = ['pagado', 'enviado', 'entregado']
 
 # Imágenes adicionales (galería) por producto
 MAX_IMAGENES = 4
@@ -477,6 +477,51 @@ def avanzar_pedido(id):
     return _redirigir_seguro(request.referrer, url_for('admin.pedidos'))
 
 
+@admin_bp.route('/pedidos/<int:id>/confirmar-pago', methods=['POST'])
+@login_required
+@admin_requerido
+def confirmar_pago(id):
+    pedido = Pedido.query.get_or_404(id)
+    if pedido.estado not in ('en_verificacion', 'rechazado'):
+        flash('Este pedido no está a la espera de confirmación de pago.', 'warning')
+        return _redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
+
+    # Revalidar stock antes de descontar (pudo cambiar desde que se hizo el pedido)
+    faltantes = []
+    necesario = {}
+    for d in pedido.detalles:
+        if d.producto:
+            necesario[d.producto] = necesario.get(d.producto, 0) + d.cantidad
+    for producto, cantidad in necesario.items():
+        if producto.stock < cantidad:
+            faltantes.append(f'{producto.nombre} (disponible {producto.stock}, requiere {cantidad})')
+    if faltantes:
+        flash('No se puede confirmar: sin stock suficiente de ' + ', '.join(faltantes) + '.', 'danger')
+        return _redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
+
+    # Descontar stock y marcar como pagado
+    for producto, cantidad in necesario.items():
+        producto.stock -= cantidad
+    pedido.estado = 'pagado'
+    db.session.commit()
+    flash(f'Pago del pedido #{pedido.id} confirmado. Stock descontado.', 'success')
+    return _redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
+
+
+@admin_bp.route('/pedidos/<int:id>/rechazar-pago', methods=['POST'])
+@login_required
+@admin_requerido
+def rechazar_pago(id):
+    pedido = Pedido.query.get_or_404(id)
+    if pedido.estado != 'en_verificacion':
+        flash('Solo se puede rechazar un pago en verificación.', 'warning')
+    else:
+        pedido.estado = 'rechazado'
+        db.session.commit()
+        flash(f'Comprobante del pedido #{pedido.id} rechazado. El cliente puede subir otro.', 'info')
+    return _redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
+
+
 @admin_bp.route('/pedidos/<int:id>/cancelar', methods=['POST'])
 @login_required
 @admin_requerido
@@ -485,6 +530,11 @@ def cancelar_pedido(id):
     if pedido.estado in ('entregado', 'cancelado'):
         flash('Este pedido ya no se puede cancelar.', 'warning')
     else:
+        # Si el pago ya estaba confirmado, se repone el stock descontado
+        if pedido.estado in ESTADOS_VENTA:
+            for d in pedido.detalles:
+                if d.producto:
+                    d.producto.stock += d.cantidad
         pedido.estado = 'cancelado'
         db.session.commit()
         flash(f'Pedido #{pedido.id} cancelado.', 'info')

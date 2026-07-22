@@ -7,12 +7,20 @@ class Pedido(db.Model):
     id              = db.Column(db.Integer, primary_key=True)
     fecha           = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     estado          = db.Column(
-                        db.Enum('pendiente', 'pagado', 'enviado', 'entregado', 'cancelado'),
-                        default='pendiente'
+                        db.Enum('en_verificacion', 'pagado', 'enviado',
+                                'entregado', 'cancelado', 'rechazado'),
+                        default='en_verificacion'
                     )
     total           = db.Column(db.Numeric(10, 2), default=0)
+
+    # Datos de entrega / facturación
+    nombre_receptor = db.Column(db.String(150))
+    cedula          = db.Column(db.String(10))
     direccion       = db.Column(db.String(300))
     notas           = db.Column(db.Text)
+
+    # Comprobante de la transferencia (nombre de archivo en carpeta privada)
+    comprobante     = db.Column(db.String(300))
 
     # Clave foránea → usuarios
     usuario_id      = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)

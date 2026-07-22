@@ -5,3 +5,6 @@ __pycache__
 
 # Respaldos locales de la base de datos (no deben subirse)
 backup_ecommerce_db_*.sql
+
+# Carpeta de instancia (comprobantes de pago privados, etc.)
+instance/

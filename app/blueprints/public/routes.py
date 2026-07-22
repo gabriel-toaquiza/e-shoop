@@ -1,5 +1,7 @@
 from urllib.parse import urlparse
-from flask import render_template, redirect, url_for, flash, request, session, abort
+from flask import (render_template, redirect, url_for, flash, request, session,
+                   abort, current_app, send_from_directory)
+from werkzeug.datastructures import FileStorage
 from flask_login import login_required, current_user
 from sqlalchemy import func
 from app import db
@@ -7,6 +9,8 @@ from app.models import Producto, Categoria, Pedido, DetallePedido
 from app.blueprints.public import public_bp
 from app.blueprints.public.carrito_utils import (
     clave_item, normalizar_carrito, unidades_producto, MAX_ESPECIFICACIONES)
+from app.blueprints.public.pagos_utils import (
+    cedula_valida, guardar_comprobante, extension_comprobante_valida, carpeta_comprobantes)
 
 # Estados que cuentan como una venta concretada (igual que en el panel de admin)
 ESTADOS_VENTA = ('pagado', 'enviado', 'entregado')
@@ -222,19 +226,38 @@ def pago():
         return redirect(url_for('public.tienda'))
 
     if request.method == 'POST':
+        nombre    = request.form.get('nombre_receptor', '').strip()
+        cedula    = request.form.get('cedula', '').strip()
         direccion = request.form.get('direccion', '').strip()
         notas     = request.form.get('notas', '').strip()
+        archivo   = request.files.get('comprobante')
 
+        # Validación de datos de entrega y del comprobante (obligatorio)
+        errores = []
+        if not nombre:
+            errores.append('El nombre de quien recibe es obligatorio.')
+        if not cedula_valida(cedula):
+            errores.append('La cédula no es válida (debe ser una cédula ecuatoriana de 10 dígitos).')
         if not direccion:
-            flash('La dirección de entrega es obligatoria.', 'danger')
-            return redirect(url_for('public.pago'))
+            errores.append('La dirección de entrega es obligatoria.')
+        if not (isinstance(archivo, FileStorage) and archivo.filename):
+            errores.append('Debes adjuntar el comprobante de la transferencia.')
+        elif not extension_comprobante_valida(archivo.filename):
+            errores.append('El comprobante debe ser una imagen (jpg, png, webp) o un PDF.')
+        if errores:
+            for e in errores:
+                flash(e, 'danger')
+            items, total = _resumen_carrito(carrito)
+            return render_template('public/pago.html', items=items, total=total,
+                                   datos_banco=current_app.config['DATOS_BANCARIOS'],
+                                   nombre=nombre, cedula=cedula,
+                                   direccion=direccion, notas=notas)
 
-        # Seleccionar las líneas que se pueden cumplir. El stock se valida por
-        # producto (sumando todas sus líneas) porque una misma pieza puede estar
-        # varias veces con distintas personalizaciones.
+        # El stock NO se descuenta aquí: se descuenta cuando el admin confirma el
+        # pago. Solo comprobamos que haya disponibilidad al momento del pedido.
         lineas   = []
         omitidos = []
-        usado    = {}   # unidades ya comprometidas por producto en este pedido
+        usado    = {}
         for clave, linea in carrito.items():
             producto = db.session.get(Producto, linea['producto_id'])
             if not (producto and producto.activo):
@@ -248,34 +271,33 @@ def pago():
             else:
                 omitidos.append(producto.nombre)
 
-        # No crear un pedido vacío
         if not lineas:
             flash('No se pudo procesar el pedido: los productos ya no están '
                   'disponibles o no tienen stock suficiente.', 'danger')
             return redirect(url_for('public.carrito'))
 
-        # Crear el pedido
+        # Crear el pedido ya con el comprobante → "En verificación"
         nuevo_pedido = Pedido(
-            usuario_id = current_user.id,
-            direccion  = direccion,
-            notas      = notas,
-            estado     = 'pendiente'
+            usuario_id      = current_user.id,
+            nombre_receptor = nombre,
+            cedula          = cedula,
+            direccion       = direccion,
+            notas           = notas,
+            estado          = 'en_verificacion'
         )
         db.session.add(nuevo_pedido)
-        db.session.flush()   # obtiene el ID sin hacer commit
+        db.session.flush()
 
-        # Crear los detalles y descontar stock
         for producto, cantidad, especificaciones in lineas:
-            detalle = DetallePedido(
+            db.session.add(DetallePedido(
                 pedido_id        = nuevo_pedido.id,
                 producto_id      = producto.id,
                 cantidad         = cantidad,
                 precio_unitario  = producto.precio,
                 especificaciones = especificaciones or None
-            )
-            producto.stock -= cantidad
-            db.session.add(detalle)
+            ))
 
+        nuevo_pedido.comprobante = guardar_comprobante(archivo, nuevo_pedido.id)
         nuevo_pedido.calcular_total()
         db.session.commit()
 
@@ -285,10 +307,17 @@ def pago():
         if omitidos:
             flash('Algunos productos no se incluyeron por falta de stock: '
                   + ', '.join(omitidos) + '.', 'warning')
-        flash('¡Pedido realizado con éxito!', 'success')
+        flash('¡Pedido recibido! Estamos verificando tu pago.', 'success')
         return redirect(url_for('public.confirmacion', id=nuevo_pedido.id))
 
-    # GET → mostrar resumen antes de confirmar
+    # GET → mostrar resumen, datos del banco y formulario (incluye comprobante)
+    items, total = _resumen_carrito(carrito)
+    return render_template('public/pago.html', items=items, total=total,
+                           datos_banco=current_app.config['DATOS_BANCARIOS'])
+
+
+def _resumen_carrito(carrito):
+    """Devuelve (items, total) a partir del carrito normalizado."""
     items = []
     total = 0
     for clave, linea in carrito.items():
@@ -300,8 +329,7 @@ def pago():
                           'cantidad': linea['cantidad'],
                           'especificaciones': linea['especificaciones'],
                           'subtotal': subtotal})
-
-    return render_template('public/pago.html', items=items, total=total)
+    return items, total
 
 
 # ── CONFIRMACIÓN ──────────────────────────────────────────────────
@@ -314,7 +342,50 @@ def confirmacion(id):
     if pedido.usuario_id != current_user.id:
         abort(403)
 
-    return render_template('public/confirmacion.html', pedido=pedido)
+    return render_template('public/confirmacion.html', pedido=pedido,
+                           datos_banco=current_app.config['DATOS_BANCARIOS'])
+
+
+@public_bp.route('/pedido/<int:id>/comprobante', methods=['POST'])
+@login_required
+def subir_comprobante(id):
+    pedido = Pedido.query.get_or_404(id)
+    if pedido.usuario_id != current_user.id:
+        abort(403)
+
+    # Solo se puede volver a subir cuando el comprobante fue rechazado
+    if pedido.estado != 'rechazado':
+        flash('Este pedido ya no admite un nuevo comprobante.', 'warning')
+        return redirect(url_for('public.confirmacion', id=id))
+
+    archivo = request.files.get('comprobante')
+    if not (isinstance(archivo, FileStorage) and archivo.filename):
+        flash('Selecciona el archivo del comprobante.', 'danger')
+        return redirect(url_for('public.confirmacion', id=id))
+    if not extension_comprobante_valida(archivo.filename):
+        flash('Formato no permitido. Usa una imagen (jpg, png, webp) o PDF.', 'danger')
+        return redirect(url_for('public.confirmacion', id=id))
+
+    from app.blueprints.public.pagos_utils import eliminar_comprobante
+    eliminar_comprobante(pedido.comprobante)          # si reemplaza uno anterior
+    pedido.comprobante = guardar_comprobante(archivo, pedido.id)
+    pedido.estado = 'en_verificacion'
+    db.session.commit()
+
+    flash('¡Comprobante recibido! Estamos verificando tu pago.', 'success')
+    return redirect(url_for('public.confirmacion', id=id))
+
+
+@public_bp.route('/pedido/<int:id>/comprobante/ver')
+@login_required
+def ver_comprobante(id):
+    """Sirve el comprobante desde la carpeta privada. Solo dueño o admin."""
+    pedido = Pedido.query.get_or_404(id)
+    if pedido.usuario_id != current_user.id and not current_user.es_admin():
+        abort(403)
+    if not pedido.comprobante:
+        abort(404)
+    return send_from_directory(carpeta_comprobantes(), pedido.comprobante)
 
 
 # ── MIS PEDIDOS ───────────────────────────────────────────────────

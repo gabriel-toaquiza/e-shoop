@@ -2,7 +2,8 @@
 {% block title %}Pedidos{% endblock %}
 
 {% block content %}
-{% set colores = {'pendiente':'warning','pagado':'info','enviado':'primary','entregado':'success','cancelado':'danger'} %}
+{% set colores = {'en_verificacion':'info','pagado':'primary','enviado':'primary','entregado':'success','rechazado':'warning','cancelado':'danger'} %}
+{% set etiquetas = {'en_verificacion':'En verificación','pagado':'Pagado','enviado':'Enviado','entregado':'Entregado','rechazado':'Rechazado','cancelado':'Cancelado'} %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">Pedidos</h2>
@@ -13,9 +14,9 @@
 <div class="mb-3">
     <a href="{{ url_for('admin.pedidos') }}"
        class="btn btn-sm {{ 'btn-dark' if not estado else 'btn-outline-dark' }}">Todos</a>
-    {% for e in ['pendiente','pagado','enviado','entregado','cancelado'] %}
+    {% for e in ['en_verificacion','pagado','enviado','entregado','rechazado','cancelado'] %}
     <a href="{{ url_for('admin.pedidos', estado=e) }}"
-       class="btn btn-sm {{ 'btn-dark' if estado == e else 'btn-outline-dark' }}">{{ e|capitalize }}</a>
+       class="btn btn-sm {{ 'btn-dark' if estado == e else 'btn-outline-dark' }}">{{ etiquetas.get(e, e) }}</a>
     {% endfor %}
 </div>
 
@@ -39,7 +40,7 @@
             <td>{{ p.cliente.nombre if p.cliente else '—' }}</td>
             <td class="text-end">${{ '%.2f'|format(p.total) }}</td>
             <td class="text-center">
-                <span class="badge bg-{{ colores.get(p.estado, 'secondary') }}">{{ p.estado }}</span>
+                <span class="badge bg-{{ colores.get(p.estado, 'secondary') }}">{{ etiquetas.get(p.estado, p.estado) }}</span>
             </td>
             <td class="text-end">
                 <a href="{{ url_for('admin.detalle_pedido', id=p.id) }}"
