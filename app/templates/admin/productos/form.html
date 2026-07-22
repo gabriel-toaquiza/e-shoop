@@ -96,6 +96,27 @@
                 <div class="form-text">Formatos: jpg, jpeg, webp. Los cambios se confirman al pulsar Guardar.</div>
             </div>
 
+            <!-- Personalización -->
+            <div class="border rounded p-3 mb-3 bg-light">
+                <div class="form-check mb-2">
+                    {{ form.personalizable(class='form-check-input', id='chk-personalizable') }}
+                    {{ form.personalizable.label(class='form-check-label fw-semibold') }}
+                    <div class="form-text mb-0">
+                        Si se activa, el cliente deberá escribir sus especificaciones
+                        antes de añadir el producto al carrito.
+                    </div>
+                </div>
+                <div id="bloque-instrucciones">
+                    {{ form.instrucciones_personalizacion.label(class='form-label') }}
+                    {{ form.instrucciones_personalizacion(class='form-control', rows='3',
+                        placeholder='Ej: Indícanos el color, las medidas y el nombre que quieres bordar.') }}
+                    {% for error in form.instrucciones_personalizacion.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">Este texto se mostrará al cliente como guía.</div>
+                </div>
+            </div>
+
             <div class="mb-3 form-check">
                 {{ form.activo(class='form-check-input') }}
                 {{ form.activo.label(class='form-check-label') }}
@@ -112,6 +133,17 @@
 
 
 {% block scripts %}
+<script>
+// Mostrar u ocultar el bloque de instrucciones según el check de personalizable
+(function () {
+  const chk    = document.getElementById('chk-personalizable');
+  const bloque = document.getElementById('bloque-instrucciones');
+  if (!chk || !bloque) return;
+  function actualizar() { bloque.style.display = chk.checked ? '' : 'none'; }
+  chk.addEventListener('change', actualizar);
+  actualizar();
+})();
+</script>
 <script>
 (function () {
   const MAX = 4;

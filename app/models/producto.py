@@ -12,6 +12,10 @@ class Producto(db.Model):
     imagen          = db.Column(db.String(300))                      # portada
     imagenes        = db.Column(db.Text)                             # adicionales (nombres separados por coma)
     activo          = db.Column(db.Boolean, default=True)
+    # Personalización: el cliente escribe especificaciones antes de comprar
+    personalizable  = db.Column(db.Boolean, default=False, nullable=False)
+    # Texto que el admin muestra al cliente indicando qué datos debe enviar
+    instrucciones_personalizacion = db.Column(db.Text)
     creado_en       = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Clave foránea → categorias

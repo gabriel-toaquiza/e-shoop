@@ -41,14 +41,16 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
 
-    # Favoritos disponibles en todas las plantillas (para el ❤ y el contador)
+    # Favoritos y contador de carrito disponibles en todas las plantillas
     @app.context_processor
     def inject_favoritos():
+        from app.blueprints.public.carrito_utils import cantidad_total
         if current_user.is_authenticated:
             ids = {p.id for p in current_user.favoritos}
         else:
             ids = set(session.get('favoritos', []))
-        return {'favoritos_ids': ids}
+        return {'favoritos_ids': ids,
+                'carrito_cantidad': cantidad_total(session.get('carrito', {}))}
 
     return app
 

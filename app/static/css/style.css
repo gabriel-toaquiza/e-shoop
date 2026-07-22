@@ -202,6 +202,60 @@ footer a {
     min-height: 78vh;        /* ocupa buena parte de la pantalla */
 }
 
+/* ---------- Notificaciones flotantes ---------- */
+.notificaciones {
+    position: fixed;
+    top: 6.5rem;             /* justo debajo del navbar */
+    right: 1rem;
+    z-index: 1080;           /* por encima del banner y del contenido */
+    width: min(380px, calc(100vw - 2rem));
+    pointer-events: none;    /* no bloquea clics en la página */
+}
+.notificaciones .alert {
+    pointer-events: auto;    /* pero sí se puede cerrar a mano */
+    margin-bottom: .75rem;
+}
+@media (max-width: 991.98px) {
+    .notificaciones {
+        top: 5rem;
+        left: 1rem;
+        right: 1rem;
+        width: auto;
+    }
+}
+
+/* ---------- Banda de beneficios (inicio) ---------- */
+.banda-beneficios {
+    width: 100vw;                          /* a todo el ancho, como el hero */
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-bottom: -2rem;                  /* se pega al footer */
+    padding: 2.5rem 0;
+    background: var(--marca-principal);
+    color: #ffffff;
+}
+.beneficio-icono {
+    font-size: 2rem;
+    margin-right: 1rem;
+    color: var(--marca-secundario);
+    line-height: 1;
+}
+@media (max-width: 767.98px) {
+    .beneficio-icono {
+        display: block;
+        margin: 0 0 .5rem 0;
+    }
+}
+
+/* ---------- Foto de los integrantes del equipo ---------- */
+.foto-equipo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--marca-principal);
+}
+
 /* ---------- Logotipo de marca ---------- */
 .logo-navbar {
     height: 34px;

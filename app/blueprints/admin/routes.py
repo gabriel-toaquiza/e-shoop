@@ -264,6 +264,8 @@ def crear_producto():
             precio       = form.precio.data,
             stock        = form.stock.data or 0,
             categoria_id = form.categoria_id.data,
+            personalizable = form.personalizable.data,
+            instrucciones_personalizacion = form.instrucciones_personalizacion.data or None,
             activo       = form.activo.data
         )
         guardadas = []   # todos los archivos guardados, para limpiar si falla el commit
@@ -322,6 +324,8 @@ def editar_producto(id):
         producto.precio       = form.precio.data
         producto.stock        = form.stock.data or 0
         producto.categoria_id = form.categoria_id.data
+        producto.personalizable = form.personalizable.data
+        producto.instrucciones_personalizacion = form.instrucciones_personalizacion.data or None
         producto.activo       = form.activo.data
 
         # --- Portada ---

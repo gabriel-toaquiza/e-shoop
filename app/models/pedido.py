@@ -40,6 +40,9 @@ class DetallePedido(db.Model):
     cantidad        = db.Column(db.Integer, nullable=False, default=1)
     precio_unitario = db.Column(db.Numeric(10, 2), nullable=False)  # precio al momento de comprar
 
+    # Especificaciones de personalización que escribió el cliente (si aplica)
+    especificaciones = db.Column(db.Text)
+
     # Claves foráneas
     pedido_id       = db.Column(db.Integer, db.ForeignKey('pedidos.id'),   nullable=False)
     producto_id     = db.Column(db.Integer, db.ForeignKey('productos.id'), nullable=False)

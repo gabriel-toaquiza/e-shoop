@@ -56,7 +56,12 @@
             <tbody>
               {% for detalle in pedido.detalles %}
               <tr>
-                <td>{{ detalle.producto.nombre }}</td>
+                <td>
+                  {{ detalle.producto.nombre }}
+                  {% if detalle.especificaciones %}
+                    <div class="small text-muted"><i class="bi bi-pencil-square"></i> {{ detalle.especificaciones }}</div>
+                  {% endif %}
+                </td>
                 <td class="text-center">{{ detalle.cantidad }}</td>
                 <td class="text-end">
                   ${{ "%.2f"|format(detalle.precio_unitario) }}

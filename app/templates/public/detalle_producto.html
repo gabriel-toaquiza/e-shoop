@@ -65,17 +65,36 @@
     <!-- Cantidad + Añadir al carrito (lado a lado) -->
     {% if producto.tiene_stock() %}
       <form method="POST" action="{{ url_for('public.agregar_carrito', id=producto.id) }}"
-            class="d-flex align-items-center flex-wrap gap-3 mb-4">
+            class="mb-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="input-group selector-cantidad">
-          <button type="button" class="btn btn-outline-secondary px-3" id="btn-menos">−</button>
-          <input type="number" name="cantidad" id="cantidad"
-                 class="form-control text-center fw-bold" value="1" min="1" max="10">
-          <button type="button" class="btn btn-outline-secondary px-3" id="btn-mas">+</button>
+
+        {% if producto.personalizable %}
+        <!-- Personalización -->
+        <div class="border rounded p-3 mb-3" style="background:#f3e3ec;">
+          <label for="especificaciones" class="form-label fw-semibold mb-1">
+            <i class="bi bi-pencil-square text-primary"></i> Personaliza tu pedido
+          </label>
+          {% if producto.instrucciones_personalizacion %}
+            <p class="small text-muted mb-2">{{ producto.instrucciones_personalizacion }}</p>
+          {% endif %}
+          <textarea name="especificaciones" id="especificaciones" rows="3" maxlength="300"
+                    class="form-control" required
+                    placeholder="Escribe aquí tus especificaciones..."></textarea>
+          <div class="form-text">Máximo 300 caracteres. Este producto se elabora por encargo.</div>
         </div>
-        <button type="submit" class="btn btn-primary btn-lg text-uppercase fw-semibold px-4">
-          Añadir al carrito
-        </button>
+        {% endif %}
+
+        <div class="d-flex align-items-center flex-wrap gap-3">
+          <div class="input-group selector-cantidad">
+            <button type="button" class="btn btn-outline-secondary px-3" id="btn-menos">−</button>
+            <input type="number" name="cantidad" id="cantidad"
+                   class="form-control text-center fw-bold" value="1" min="1" max="10">
+            <button type="button" class="btn btn-outline-secondary px-3" id="btn-mas">+</button>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg text-uppercase fw-semibold px-4">
+            Añadir al carrito
+          </button>
+        </div>
       </form>
     {% else %}
       <button class="btn btn-secondary btn-lg mb-4" disabled>No disponible</button>

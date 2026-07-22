@@ -97,19 +97,91 @@
 <!-- ===== BANDA: HECHO A MANO ===== -->
 <div class="row align-items-center g-4 my-5 p-4 p-md-5 rounded-3" style="background:#f3e3ec;">
   <div class="col-md-5">
-    <div class="rounded-3 d-flex align-items-center justify-content-center"
-         style="min-height:260px; background:linear-gradient(135deg,#5B1A2E,#8a2c48); color:#fff;">
-      <i class="bi bi-scissors" style="font-size:4rem;"></i>
-    </div>
+    <img src="{{ url_for('static', filename='img/marca/modelo-home.jpg') }}"
+         alt="Bolso artesanal Verova" class="img-fluid rounded-3 w-100">
   </div>
   <div class="col-md-7">
     <h2 class="fw-bold mb-3 text-primary">Hecho a mano con amor</h2>
-    <p class="mb-4">
-      Cada totebag, cuadro y pieza de decoración nace de un proceso artesanal
+    <p>
+      Cada tote bag, cuadro y pieza de decoración nace de un proceso artesanal
       donde cuidamos cada detalle. Creamos productos únicos, pensados para darle
       personalidad y calidez a tu espacio.
     </p>
-    <a href="{{ url_for('public.acerca') }}" class="btn btn-primary">Conócenos →</a>
+    <p class="text-muted">
+      Trabajamos por encargo y en cantidades pequeñas, así que ninguna pieza sale
+      igual a otra. Elegimos telas, cuentas y ceras que aguanten el uso diario,
+      y detrás de cada producto hay manos ecuatorianas que llevan años en el oficio.
+    </p>
+
+    <div class="row g-3 my-4">
+      <div class="col-sm-6 d-flex">
+        <i class="bi bi-gem text-primary fs-5 me-3"></i>
+        <div>
+          <strong class="d-block">Piezas únicas</strong>
+          <span class="small text-muted">Nada fabricado en serie.</span>
+        </div>
+      </div>
+      <div class="col-sm-6 d-flex">
+        <i class="bi bi-palette text-primary fs-5 me-3"></i>
+        <div>
+          <strong class="d-block">A tu medida</strong>
+          <span class="small text-muted">Colores y tamaños a tu gusto.</span>
+        </div>
+      </div>
+      <div class="col-sm-6 d-flex">
+        <i class="bi bi-hand-thumbs-up text-primary fs-5 me-3"></i>
+        <div>
+          <strong class="d-block">Materiales nobles</strong>
+          <span class="small text-muted">Seleccionados para que duren.</span>
+        </div>
+      </div>
+      <div class="col-sm-6 d-flex">
+        <i class="bi bi-geo-alt text-primary fs-5 me-3"></i>
+        <div>
+          <strong class="d-block">Hecho en Ecuador</strong>
+          <span class="small text-muted">Apoyando el trabajo local.</span>
+        </div>
+      </div>
+    </div>
+
+    <a href="{{ url_for('public.nosotros') }}" class="btn btn-primary">Conócenos →</a>
+    <a href="{{ url_for('public.tienda') }}" class="btn btn-outline-primary ms-2">Ver productos</a>
+  </div>
+</div>
+
+<!-- ===== BANDA: BENEFICIOS ===== -->
+<div class="banda-beneficios">
+  <div class="container">
+    <div class="row g-4 text-center text-md-start">
+      <div class="col-6 col-lg-3 d-md-flex align-items-center">
+        <i class="bi bi-truck beneficio-icono"></i>
+        <div>
+          <h6 class="fw-bold text-uppercase mb-1">Envío gratis</h6>
+          <p class="small mb-0 opacity-75">En compras desde $75</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3 d-md-flex align-items-center">
+        <i class="bi bi-arrow-repeat beneficio-icono"></i>
+        <div>
+          <h6 class="fw-bold text-uppercase mb-1">Cambios</h6>
+          <p class="small mb-0 opacity-75">Tienes 7 días para cambiar</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3 d-md-flex align-items-center">
+        <i class="bi bi-shield-check beneficio-icono"></i>
+        <div>
+          <h6 class="fw-bold text-uppercase mb-1">Compra segura</h6>
+          <p class="small mb-0 opacity-75">Tus datos están protegidos</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3 d-md-flex align-items-center">
+        <i class="bi bi-brush beneficio-icono"></i>
+        <div>
+          <h6 class="fw-bold text-uppercase mb-1">Personalizado</h6>
+          <p class="small mb-0 opacity-75">Pídelo a tu medida</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

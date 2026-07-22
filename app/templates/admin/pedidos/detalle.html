@@ -37,7 +37,15 @@
     <tbody>
         {% for d in pedido.detalles %}
         <tr>
-            <td>{{ d.producto.nombre if d.producto else '—' }}</td>
+            <td>
+                {{ d.producto.nombre if d.producto else '—' }}
+                {% if d.especificaciones %}
+                    <div class="small mt-1 p-2 rounded" style="background:#f3e3ec;">
+                        <i class="bi bi-pencil-square text-primary"></i>
+                        <span class="fw-semibold">Personalización:</span> {{ d.especificaciones }}
+                    </div>
+                {% endif %}
+            </td>
             <td class="text-center">{{ d.cantidad }}</td>
             <td class="text-end">${{ '%.2f'|format(d.precio_unitario) }}</td>
             <td class="text-end">${{ '%.2f'|format(d.subtotal()) }}</td>

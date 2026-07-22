@@ -67,6 +67,12 @@ class FormProducto(FlaskForm):
 
     imagenes_nuevas = MultipleFileField('Imágenes adicionales (máx. 4)')
 
+    personalizable = BooleanField('Producto personalizable', default=False)
+
+    instrucciones_personalizacion = TextAreaField(
+                   'Instrucciones para el cliente',
+                   validators=[Optional(), Length(max=500)])
+
     activo       = BooleanField('Activo', default=True)
 
     submit       = SubmitField('Guardar')

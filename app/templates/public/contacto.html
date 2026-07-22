@@ -1,7 +1,257 @@
 {% extends 'base.html' %}
-{% block title %}Contacto – e-Shop{% endblock %}
+{% block title %}Contacto – Verova{% endblock %}
 
 {% block content %}
 {% set banner_titulo = 'Contacto' %}
 {% include 'partials/banner.html' %}
+
+<div class="row justify-content-center mt-5">
+  <div class="col-lg-10">
+
+    <!-- Introducción -->
+    <div class="text-center mb-5">
+      <h2 class="fw-bold mb-3 text-primary">Hablemos</h2>
+      <p class="lead text-muted mb-0">
+        Somos una tienda 100 % en línea, así que este es nuestro mostrador.
+        ¿Tienes una duda sobre un producto, quieres un pedido personalizado o
+        necesitas ayuda con tu compra? Escríbenos y te respondemos lo antes posible.
+      </p>
+    </div>
+
+    <!-- Datos de contacto -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-shop-window text-primary" style="font-size:2rem;"></i>
+            <h6 class="fw-bold mt-2">Tienda en línea</h6>
+            <p class="text-muted small mb-0">
+              No tenemos local físico:<br>
+              atendemos <strong>100&nbsp;% en línea</strong><br>
+              y despachamos desde Quito<br>
+              a todo el Ecuador.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-telephone text-primary" style="font-size:2rem;"></i>
+            <h6 class="fw-bold mt-2">Teléfonos</h6>
+            <p class="text-muted small mb-0">
+              <a href="tel:+59323945000" class="text-decoration-none text-muted">(02) 394 5000</a><br>
+              <a href="https://wa.me/593991234567" target="_blank" rel="noopener"
+                 class="text-decoration-none text-muted">
+                <i class="bi bi-whatsapp"></i> +593 99 123 4567
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-envelope text-primary" style="font-size:2rem;"></i>
+            <h6 class="fw-bold mt-2">Correos</h6>
+            <p class="text-muted small mb-0">
+              <a href="mailto:hola@verova.ec" class="text-decoration-none text-muted">hola@verova.ec</a><br>
+              <a href="mailto:ventas@verova.ec" class="text-decoration-none text-muted">ventas@verova.ec</a><br>
+              <a href="mailto:soporte@verova.ec" class="text-decoration-none text-muted">soporte@verova.ec</a>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-3">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-clock text-primary" style="font-size:2rem;"></i>
+            <h6 class="fw-bold mt-2">Horario</h6>
+            <p class="text-muted small mb-0">
+              Lunes a viernes<br>09:00 – 18:00<br>
+              Sábados<br>10:00 – 14:00<br>
+              <span class="fst-italic">Domingos cerrado</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row g-5 align-items-start mb-5">
+      <div class="col-lg-7">
+        <h4 class="fw-bold mb-3 text-primary">Envíanos un mensaje</h4>
+        <p class="text-muted small">
+          Completa el formulario y se abrirá tu correo con el mensaje ya listo para enviar.
+        </p>
+        <form id="form-contacto" class="row g-3">
+          <div class="col-md-6">
+            <label for="c-nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="c-nombre" required>
+          </div>
+          <div class="col-md-6">
+            <label for="c-correo" class="form-label">Tu correo</label>
+            <input type="email" class="form-control" id="c-correo" required>
+          </div>
+          <div class="col-12">
+            <label for="c-asunto" class="form-label">Asunto</label>
+            <select class="form-select" id="c-asunto">
+              <option>Consulta sobre un producto</option>
+              <option>Pedido personalizado</option>
+              <option>Estado de mi pedido</option>
+              <option>Devoluciones y cambios</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label for="c-mensaje" class="form-label">Mensaje</label>
+            <textarea class="form-control" id="c-mensaje" rows="5" required></textarea>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-send"></i> Enviar mensaje
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Preguntas frecuentes -->
+      <div class="col-lg-5">
+        <h4 class="fw-bold mb-3 text-primary">Preguntas frecuentes</h4>
+        <div class="accordion" id="faq">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#faq1">
+                ¿Hacen envíos a todo el país?
+              </button>
+            </h2>
+            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faq">
+              <div class="accordion-body small text-muted">
+                Sí. Enviamos a todo el Ecuador. En Quito la entrega tarda de 1 a 2 días
+                laborables; al resto del país, de 3 a 5 días.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#faq5">
+                ¿Tienen local físico para visitarlos?
+              </button>
+            </h2>
+            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faq">
+              <div class="accordion-body small text-muted">
+                No. Verova funciona únicamente en línea: no contamos con tienda ni
+                showroom que puedas visitar. Todos los pedidos se atienden por esta
+                página, por correo o por WhatsApp, y se envían a tu domicilio.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#faq2">
+                ¿Puedo pedir un producto personalizado?
+              </button>
+            </h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faq">
+              <div class="accordion-body small text-muted">
+                Claro. Escríbenos con la idea, los colores y las medidas que buscas y
+                te enviamos una propuesta con el precio y el tiempo de elaboración.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#faq3">
+                ¿Qué formas de pago aceptan?
+              </button>
+            </h2>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faq">
+              <div class="accordion-body small text-muted">
+                Transferencia bancaria, depósito y pago contra entrega en Quito.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#faq4">
+                ¿Puedo cambiar o devolver un producto?
+              </button>
+            </h2>
+            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faq">
+              <div class="accordion-body small text-muted">
+                Tienes 7 días desde que recibes el pedido. Revisa los
+                <a href="{{ url_for('public.terminos') }}">términos y condiciones</a>
+                para conocer el detalle.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Redes -->
+        <h6 class="fw-bold mt-4 mb-2">Síguenos</h6>
+        <a href="https://instagram.com" target="_blank" rel="noopener"
+           class="btn btn-outline-primary btn-sm me-2">
+          <i class="bi bi-instagram"></i> Instagram
+        </a>
+        <a href="https://facebook.com" target="_blank" rel="noopener"
+           class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-facebook"></i> Facebook
+        </a>
+      </div>
+    </div>
+
+    <!-- Equipo creador -->
+    <hr class="my-5">
+    <h4 class="fw-bold text-center mb-2 text-primary">Creadores del sitio</h4>
+    <p class="text-center text-muted small mb-4">
+      Proyecto de la materia Diseño y Creación de Páginas Web · 2026 ·
+      Universidad Politécnica Salesiana
+    </p>
+    <div class="row g-4 mb-5">
+      {% for m in [
+        {'nombre': 'Gabriel Toaquiza', 'foto': 'gabriel.jpg', 'correo': 'gtoaquizac@est.ups.edu.ec'},
+        {'nombre': 'Juan Pacheco',     'foto': 'juan.jpg',    'correo': 'jpachecon1@est.ups.edu.ec'},
+        {'nombre': 'Angelo Navarrete', 'foto': 'angelo.jpg',  'correo': 'anavarretev2@est.ups.edu.ec'}
+      ] %}
+      <div class="col-md-4">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <img src="{{ url_for('static', filename='img/equipo/' + m.foto) }}"
+                 alt="{{ m.nombre }}" class="foto-equipo mb-3">
+            <h6 class="fw-bold mb-0">{{ m.nombre }}</h6>
+            <small class="text-muted d-block mb-2">Desarrollador</small>
+            <a href="mailto:{{ m.correo }}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-envelope"></i> Escribirme
+            </a>
+            <div class="small text-muted mt-2">{{ m.correo }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Arma un correo con lo escrito en el formulario y lo abre en el gestor del usuario
+  document.getElementById('form-contacto').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const nombre  = document.getElementById('c-nombre').value;
+    const correo  = document.getElementById('c-correo').value;
+    const asunto  = document.getElementById('c-asunto').value;
+    const mensaje = document.getElementById('c-mensaje').value;
+    const cuerpo  = `${mensaje}\n\n---\nNombre: ${nombre}\nCorreo: ${correo}`;
+    window.location.href = 'mailto:hola@verova.ec'
+      + '?subject=' + encodeURIComponent(asunto)
+      + '&body='    + encodeURIComponent(cuerpo);
+  });
+</script>
 {% endblock %}

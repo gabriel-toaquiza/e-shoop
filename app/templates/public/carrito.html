@@ -22,10 +22,16 @@
         <td>
           <a href="{{ url_for('public.detalle_producto', id=item.producto.id) }}"
              class="text-decoration-none fw-semibold text-primary">{{ item.producto.nombre }}</a>
+          {% if item.especificaciones %}
+            <div class="small text-muted mt-1">
+              <i class="bi bi-pencil-square"></i>
+              <span class="fw-semibold">Personalización:</span> {{ item.especificaciones }}
+            </div>
+          {% endif %}
         </td>
         <td>${{ "%.2f"|format(item.producto.precio) }}</td>
         <td>
-          <form action="{{ url_for('public.actualizar_carrito', id=item.producto.id) }}"
+          <form action="{{ url_for('public.actualizar_carrito', clave=item.clave) }}"
                 method="POST" class="d-inline-flex align-items-center gap-2">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" name="accion" value="restar" class="btn btn-sm btn-outline-secondary py-0 px-2">−</button>
@@ -35,7 +41,7 @@
         </td>
         <td>${{ "%.2f"|format(item.subtotal) }}</td>
         <td>
-          <form action="{{ url_for('public.eliminar_carrito', id=item.producto.id) }}"
+          <form action="{{ url_for('public.eliminar_carrito', clave=item.clave) }}"
                 method="POST" class="d-inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-sm btn-outline-danger">✕</button>

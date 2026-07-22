@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Nosotros – Verova{% endblock %}
+
+{% block content %}
+{% set banner_titulo = 'Nosotros' %}
+{% include 'partials/banner.html' %}
+
+<div class="row justify-content-center mt-5">
+  <div class="col-lg-9">
+
+    <!-- Introducción -->
+    <div class="text-center mb-5">
+      <h2 class="fw-bold mb-3 text-primary">Artesanía ecuatoriana, hecha a mano</h2>
+      <p class="lead text-muted">
+        Verova nace en Quito con una idea sencilla: que las piezas hechas a mano
+        vuelvan a tener un lugar en la casa. Trabajamos tote bags, cuadros de
+        cuentas, velas artesanales, cunas nido y decoración de interiores, con
+        materiales nobles y el tiempo que cada pieza necesita. Somos una tienda
+        <strong>100 % en línea</strong>: te lo enviamos a donde estés.
+      </p>
+    </div>
+
+    <!-- Nuestra historia -->
+    <div class="row align-items-center g-4 mb-5">
+      <div class="col-md-5">
+        <img src="{{ url_for('static', filename='img/marca/modelo-home.jpg') }}"
+             alt="Bolso artesanal Verova" class="img-fluid rounded-3 w-100">
+      </div>
+      <div class="col-md-7">
+        <h4 class="fw-bold mb-3 text-primary">Nuestra historia</h4>
+        <p class="text-muted">
+          Todo empezó tejiendo bolsos con motivos andinos para amigos y familia.
+          Los encargos fueron creciendo y con ellos las ganas de llegar más lejos,
+          así que en lugar de abrir un local decidimos nacer directamente en
+          internet: sin vitrina, sin intermediarios y con envíos a todo el Ecuador.
+        </p>
+        <p class="text-muted mb-0">
+          Hoy Verova reúne el trabajo de manos artesanas que mantienen viva una
+          tradición: cada tote bag, cada cuadro de cuentas y cada vela se elabora
+          por encargo, sin producción en serie. Por eso no hay dos piezas
+          exactamente iguales, y esa es justamente la idea.
+        </p>
+      </div>
+    </div>
+
+    <!-- Cómo trabajamos -->
+    <h4 class="fw-bold text-center mb-4 text-primary">Cómo trabajamos</h4>
+    <div class="row g-4 mb-5">
+      <div class="col-md-4">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-palette text-primary" style="font-size:2rem;"></i>
+            <h5 class="fw-bold mt-2">1. Diseño</h5>
+            <p class="text-muted mb-0 small">
+              Elegimos colores, tramas y medidas. Si es un encargo personalizado,
+              lo definimos contigo antes de empezar.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-scissors text-primary" style="font-size:2rem;"></i>
+            <h5 class="fw-bold mt-2">2. Elaboración</h5>
+            <p class="text-muted mb-0 small">
+              Cada pieza se arma a mano, punto por punto. Según el producto,
+              toma entre 3 y 10 días de trabajo.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-box-seam text-primary" style="font-size:2rem;"></i>
+            <h5 class="fw-bold mt-2">3. Entrega</h5>
+            <p class="text-muted mb-0 small">
+              Revisamos el acabado, la empacamos con cuidado y la enviamos a
+              cualquier punto del país.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Misión / Visión / Valores -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-4">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-bullseye text-primary" style="font-size:2rem;"></i>
+            <h5 class="fw-bold mt-2">Misión</h5>
+            <p class="text-muted mb-0 small">
+              Llevar artesanía ecuatoriana de calidad a más hogares, pagando un
+              precio justo a quienes la elaboran.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-eye text-primary" style="font-size:2rem;"></i>
+            <h5 class="fw-bold mt-2">Visión</h5>
+            <p class="text-muted mb-0 small">
+              Ser la tienda en línea de referencia en manualidades del país y
+              llegar a cada rincón del Ecuador sin intermediarios.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <i class="bi bi-heart text-primary" style="font-size:2rem;"></i>
+            <h5 class="fw-bold mt-2">Valores</h5>
+            <p class="text-muted mb-0 small">
+              Trabajo artesanal, materiales duraderos, comercio justo y trato
+              cercano con cada cliente.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lo que nos diferencia -->
+    <div class="rounded-3 p-4 p-md-5 mb-5" style="background:#f3e3ec;">
+      <h4 class="fw-bold mb-4 text-primary text-center">Lo que nos diferencia</h4>
+      <div class="row g-3">
+        <div class="col-md-6 d-flex">
+          <i class="bi bi-check-circle-fill text-primary me-3 mt-1"></i>
+          <div>
+            <strong>Piezas únicas.</strong>
+            <span class="text-muted">Nada se fabrica en serie: cada producto se hace por encargo.</span>
+          </div>
+        </div>
+        <div class="col-md-6 d-flex">
+          <i class="bi bi-check-circle-fill text-primary me-3 mt-1"></i>
+          <div>
+            <strong>Personalización.</strong>
+            <span class="text-muted">Elige colores, medidas y detalles a tu gusto.</span>
+          </div>
+        </div>
+        <div class="col-md-6 d-flex">
+          <i class="bi bi-check-circle-fill text-primary me-3 mt-1"></i>
+          <div>
+            <strong>Materiales nobles.</strong>
+            <span class="text-muted">Telas, cuentas y ceras seleccionadas para que duren.</span>
+          </div>
+        </div>
+        <div class="col-md-6 d-flex">
+          <i class="bi bi-check-circle-fill text-primary me-3 mt-1"></i>
+          <div>
+            <strong>Manos ecuatorianas.</strong>
+            <span class="text-muted">Todo se elabora aquí, apoyando el trabajo local.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nuestro equipo -->
+    <h4 class="fw-bold text-center mb-2 text-primary">Quiénes estamos detrás</h4>
+    <p class="text-center text-muted small mb-4">
+      El equipo que diseñó y desarrolló esta tienda en línea.
+    </p>
+    <div class="row g-4 mb-5">
+      {% for m in [
+        {'nombre': 'Gabriel Toaquiza', 'foto': 'gabriel.jpg', 'correo': 'gtoaquizac@est.ups.edu.ec'},
+        {'nombre': 'Juan Pacheco',     'foto': 'juan.jpg',    'correo': 'jpachecon1@est.ups.edu.ec'},
+        {'nombre': 'Angelo Navarrete', 'foto': 'angelo.jpg',  'correo': 'anavarretev2@est.ups.edu.ec'}
+      ] %}
+      <div class="col-md-4">
+        <div class="card h-100 text-center">
+          <div class="card-body">
+            <img src="{{ url_for('static', filename='img/equipo/' + m.foto) }}"
+                 alt="{{ m.nombre }}" class="foto-equipo mb-3">
+            <h6 class="fw-bold mb-0">{{ m.nombre }}</h6>
+            <small class="text-muted d-block mb-2">Desarrollador</small>
+            <a href="mailto:{{ m.correo }}" class="small text-primary text-decoration-none">
+              <i class="bi bi-envelope"></i> {{ m.correo }}
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Llamado a la acción -->
+    <div class="text-center mb-4">
+      <a href="{{ url_for('public.tienda') }}" class="btn btn-primary btn-lg me-2">Ver la tienda</a>
+      <a href="{{ url_for('public.contacto') }}" class="btn btn-outline-primary btn-lg">Contáctanos</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
