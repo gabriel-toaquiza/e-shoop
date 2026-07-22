@@ -1,10 +1,26 @@
+# Entornos virtuales
 venv/
-.env
-__pycache__
-.DS_Store
+.venv/
+env/
 
-# Respaldos locales de la base de datos (no deben subirse)
+# Variables de entorno (secretos: NO subir)
+.env
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Respaldos y volcados locales de la base de datos (no deben subirse)
 backup_ecommerce_db_*.sql
+*.dmp
 
 # Carpeta de instancia (comprobantes de pago privados, etc.)
 instance/
