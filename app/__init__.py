@@ -52,5 +52,17 @@ def create_app():
         return {'favoritos_ids': ids,
                 'carrito_cantidad': cantidad_total(session.get('carrito', {}))}
 
+    # Etiquetas y colores de los estados de pedido, disponibles en las plantillas
+    @app.context_processor
+    def inject_estados():
+        from app.estados import ESTADO_ETIQUETAS, ESTADO_COLORES, LINEA_TIEMPO
+        return {'estado_etiquetas': ESTADO_ETIQUETAS,
+                'estado_colores': ESTADO_COLORES,
+                'linea_tiempo': LINEA_TIEMPO}
+
+    # Páginas de error con el diseño del sitio
+    from app.errores import registrar_errores
+    registrar_errores(app)
+
     return app
 

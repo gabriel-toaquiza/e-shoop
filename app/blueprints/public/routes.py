@@ -1,4 +1,3 @@
-from urllib.parse import urlparse
 from flask import (render_template, redirect, url_for, flash, request, session,
                    abort, current_app, send_from_directory)
 from werkzeug.datastructures import FileStorage
@@ -6,14 +5,14 @@ from flask_login import login_required, current_user
 from sqlalchemy import func
 from app import db
 from app.models import Producto, Categoria, Pedido, DetallePedido
+from app.estados import ESTADOS_VENTA
+from app.utils import volver_atras
 from app.blueprints.public import public_bp
 from app.blueprints.public.carrito_utils import (
     clave_item, normalizar_carrito, unidades_producto, MAX_ESPECIFICACIONES)
 from app.blueprints.public.pagos_utils import (
-    cedula_valida, guardar_comprobante, extension_comprobante_valida, carpeta_comprobantes)
-
-# Estados que cuentan como una venta concretada (igual que en el panel de admin)
-ESTADOS_VENTA = ('pagado', 'enviado', 'entregado')
+    cedula_valida, guardar_comprobante, extension_comprobante_valida,
+    carpeta_comprobantes, eliminar_comprobante)
 
 
 def _categoria_mas_vendida():
@@ -29,19 +28,12 @@ def _categoria_mas_vendida():
     return fila
 
 
-def _volver_atras(fallback):
-    """Redirige a la página anterior si es del mismo sitio; si no, al fallback."""
-    destino = request.referrer
-    if not destino or urlparse(destino).netloc != urlparse(request.host_url).netloc:
-        destino = fallback
-    return redirect(destino)
-
-
 # ── HOME ──────────────────────────────────────────────────────────
 @public_bp.route('/')
 def home():
     productos_destacados = (Producto.query.join(Categoria)
                             .filter(Producto.activo == True, Categoria.activa == True)
+                            .order_by(Producto.creado_en.desc())
                             .limit(8).all())
     # La más vendida se destaca aparte, así que se excluye de las otras 3
     mas_vendida = _categoria_mas_vendida()
@@ -148,7 +140,7 @@ def agregar_carrito(id):
         especificaciones = request.form.get('especificaciones', '').strip()
         if not especificaciones:
             flash('Indica las especificaciones para personalizar este producto.', 'warning')
-            return _volver_atras(url_for('public.detalle_producto', id=id))
+            return volver_atras(url_for('public.detalle_producto', id=id))
         especificaciones = especificaciones[:MAX_ESPECIFICACIONES]
 
     try:
@@ -162,7 +154,7 @@ def agregar_carrito(id):
     disponible = producto.stock - unidades_producto(carrito, id)
     if disponible <= 0:
         flash('No hay más stock disponible de este producto.', 'warning')
-        return _volver_atras(url_for('public.detalle_producto', id=id))
+        return volver_atras(url_for('public.detalle_producto', id=id))
     if cantidad_solicitada > disponible:
         cantidad_solicitada = disponible
         flash('Cantidad ajustada al stock disponible.', 'info')
@@ -179,7 +171,7 @@ def agregar_carrito(id):
 
     session['carrito'] = carrito
     flash(f'"{producto.nombre}" agregado al carrito.', 'success')
-    return _volver_atras(url_for('public.tienda'))
+    return volver_atras(url_for('public.tienda'))
 
 
 @public_bp.route('/carrito/eliminar/<clave>', methods=['POST'])
@@ -366,7 +358,6 @@ def subir_comprobante(id):
         flash('Formato no permitido. Usa una imagen (jpg, png, webp) o PDF.', 'danger')
         return redirect(url_for('public.confirmacion', id=id))
 
-    from app.blueprints.public.pagos_utils import eliminar_comprobante
     eliminar_comprobante(pedido.comprobante)          # si reemplaza uno anterior
     pedido.comprobante = guardar_comprobante(archivo, pedido.id)
     pedido.estado = 'en_verificacion'
@@ -445,7 +436,7 @@ def toggle_favorito(id):
             flash(f'"{producto.nombre}" agregado a favoritos.', 'success')
         session['favoritos'] = favs
 
-    return _volver_atras(url_for('public.favoritos'))
+    return volver_atras(url_for('public.favoritos'))
 
 
 @public_bp.route('/favoritos')

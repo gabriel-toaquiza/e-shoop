@@ -6,26 +6,35 @@ app = create_app()
 with app.app_context():
     # Evitar duplicados: si ya hay datos, no volver a insertar
     if Categoria.query.first() or Usuario.query.first():
-        print("⚠️  La base de datos ya tiene datos. Seed cancelado.")
+        print("La base de datos ya tiene datos. Seed cancelado.")
         raise SystemExit
 
-    # Categorías
-    cat1 = Categoria(nombre='Electrónica',  descripcion='Dispositivos y gadgets')
-    cat2 = Categoria(nombre='Ropa',         descripcion='Prendas de vestir')
-    cat3 = Categoria(nombre='Hogar',        descripcion='Artículos para el hogar')
-    db.session.add_all([cat1, cat2, cat3])
+    # Categorías (marca Verova – manualidades)
+    cats = {
+        'tote':   Categoria(nombre='Tote bags',                 descripcion='Bolsos de tela tejidos a mano.'),
+        'cuadro': Categoria(nombre='Cuadros Decorativos',       descripcion='Cuadros de cuentas y arte hecho a mano.'),
+        'velas':  Categoria(nombre='Velas',                     descripcion='Velas artesanales aromáticas.'),
+        'deco':   Categoria(nombre='Decoración de Interiores',  descripcion='Piezas para darle calidez a tu espacio.'),
+    }
+    db.session.add_all(cats.values())
     db.session.commit()
 
-    # Productos
-    p1 = Producto(nombre='Audífonos Bluetooth', precio=49.99,
-                  stock=20, categoria_id=cat1.id)
-    p2 = Producto(nombre='Camiseta básica',     precio=12.50,
-                  stock=50, categoria_id=cat2.id)
-    p3 = Producto(nombre='Lámpara de escritorio', precio=25.00,
-                  stock=15, categoria_id=cat3.id)
-    db.session.add_all([p1, p2, p3])
+    # Productos de ejemplo
+    productos = [
+        Producto(nombre='Tote bag andina',        precio=18.00, stock=12, categoria_id=cats['tote'].id,
+                 personalizable=True,
+                 instrucciones_personalizacion='Indícanos los colores y si quieres un nombre bordado.'),
+        Producto(nombre='Tote bag lisa',          precio=14.00, stock=20, categoria_id=cats['tote'].id),
+        Producto(nombre='Cuadro de cuentas',      precio=25.00, stock=8,  categoria_id=cats['cuadro'].id,
+                 personalizable=True,
+                 instrucciones_personalizacion='Dinos el diseño, los colores y las medidas.'),
+        Producto(nombre='Vela aromática lavanda', precio=9.50,  stock=30, categoria_id=cats['velas'].id),
+        Producto(nombre='Vela decorativa árbol',  precio=12.00, stock=15, categoria_id=cats['velas'].id),
+        Producto(nombre='Cesta decorativa',       precio=22.00, stock=10, categoria_id=cats['deco'].id),
+    ]
+    db.session.add_all(productos)
 
-    # Usuarios
+    # Usuarios de prueba
     admin = Usuario(nombre='Administrador', email='admin@tienda.com', rol='admin')
     admin.set_password('admin123')
 
@@ -35,4 +44,4 @@ with app.app_context():
     db.session.add_all([admin, cliente])
     db.session.commit()
 
-    print("✅ Datos de prueba insertados correctamente")
+    print("Datos de prueba insertados correctamente.")

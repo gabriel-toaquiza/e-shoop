@@ -2,8 +2,8 @@
 {% block title %}Pedidos{% endblock %}
 
 {% block content %}
-{% set colores = {'en_verificacion':'info','pagado':'primary','enviado':'primary','entregado':'success','rechazado':'warning','cancelado':'danger'} %}
-{% set etiquetas = {'en_verificacion':'En verificación','pagado':'Pagado','enviado':'Enviado','entregado':'Entregado','rechazado':'Rechazado','cancelado':'Cancelado'} %}
+{% set colores = estado_colores %}
+{% set etiquetas = estado_etiquetas %}
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">Pedidos</h2>

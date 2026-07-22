@@ -1,6 +1,5 @@
 import os
 import uuid
-from urllib.parse import urlparse
 from flask import render_template, redirect, url_for, flash, current_app, request
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
@@ -8,18 +7,14 @@ from flask_login import login_required
 from sqlalchemy import func
 from app import db
 from app.models import Usuario, Categoria, Producto, Pedido
+from app.estados import (ESTADOS_VENTA, FLUJO_PEDIDO, ESTADOS_POR_VERIFICAR)
+from app.utils import redirigir_seguro
 from . import admin_bp
 from .decorators import admin_requerido
 from .forms import FormCategoria, FormProducto
 
 # Umbral para considerar un producto con "bajo stock"
 STOCK_MINIMO = 5
-
-# Estados que cuentan como una venta concretada
-ESTADOS_VENTA = ('pagado', 'enviado', 'entregado')
-
-# Flujo ordenado de estados una vez confirmado el pago
-FLUJO_PEDIDO = ['pagado', 'enviado', 'entregado']
 
 # Imágenes adicionales (galería) por producto
 MAX_IMAGENES = 4
@@ -61,13 +56,6 @@ def hay_imagen_nueva(campo):
     return isinstance(campo.data, FileStorage) and bool(campo.data.filename)
 
 
-def _redirigir_seguro(referrer, fallback):
-    """Redirige al referrer solo si es del mismo sitio (evita redirecciones externas)."""
-    if referrer and urlparse(referrer).netloc == urlparse(request.host_url).netloc:
-        return redirect(referrer)
-    return redirect(fallback)
-
-
 def _extension_valida(nombre):
     """True si el nombre de archivo tiene una extensión de imagen permitida."""
     ext = os.path.splitext(nombre)[1].lower().lstrip('.')
@@ -85,7 +73,10 @@ def dashboard():
     ).filter(Pedido.estado.in_(ESTADOS_VENTA)).scalar()
 
     total_pedidos      = Pedido.query.count()
-    pedidos_pendientes = Pedido.query.filter_by(estado='pendiente').count()
+    # Pedidos a la espera de que el admin verifique el pago
+    pedidos_pendientes = Pedido.query.filter(
+        Pedido.estado.in_(ESTADOS_POR_VERIFICAR)
+    ).count()
 
     # Productos con bajo stock (los de menor stock primero)
     productos_bajo_stock = Producto.query.filter(
@@ -192,7 +183,7 @@ def toggle_categoria(id):
     db.session.commit()
     estado = 'activada' if categoria.activa else 'desactivada'
     flash(f'Categoría "{categoria.nombre}" {estado}.', 'info')
-    return _redirigir_seguro(request.referrer, url_for('admin.categorias'))
+    return redirigir_seguro(request.referrer, url_for('admin.categorias'))
 
 
 @admin_bp.route('/categorias/<int:id>/eliminar', methods=['POST'])
@@ -204,14 +195,14 @@ def eliminar_categoria(id):
     if categoria.productos:
         flash('No se puede eliminar: la categoría tiene productos asociados. '
               'Elimina o mueve esos productos primero.', 'warning')
-        return _redirigir_seguro(request.referrer, url_for('admin.categorias'))
+        return redirigir_seguro(request.referrer, url_for('admin.categorias'))
 
     nombre = categoria.nombre
     eliminar_imagen(categoria.imagen)
     db.session.delete(categoria)
     db.session.commit()
     flash(f'Categoría "{nombre}" eliminada.', 'success')
-    return _redirigir_seguro(request.referrer, url_for('admin.categorias'))
+    return redirigir_seguro(request.referrer, url_for('admin.categorias'))
 
 
 # ── CRUD PRODUCTOS ────────────────────────────────────────────────
@@ -384,7 +375,7 @@ def toggle_producto(id):
     db.session.commit()
     estado = 'activado' if producto.activo else 'desactivado'
     flash(f'Producto "{producto.nombre}" {estado}.', 'info')
-    return _redirigir_seguro(request.referrer, url_for('admin.productos'))
+    return redirigir_seguro(request.referrer, url_for('admin.productos'))
 
 
 @admin_bp.route('/productos/<int:id>/eliminar', methods=['POST'])
@@ -396,7 +387,7 @@ def eliminar_producto(id):
     if producto.detalles:
         flash('No se puede eliminar: el producto tiene pedidos asociados. '
               'Desactívalo en su lugar.', 'warning')
-        return _redirigir_seguro(request.referrer, url_for('admin.productos'))
+        return redirigir_seguro(request.referrer, url_for('admin.productos'))
 
     nombre = producto.nombre
     # Borrar sus imágenes del disco
@@ -407,7 +398,7 @@ def eliminar_producto(id):
     db.session.delete(producto)
     db.session.commit()
     flash(f'Producto "{nombre}" eliminado.', 'success')
-    return _redirigir_seguro(request.referrer, url_for('admin.productos'))
+    return redirigir_seguro(request.referrer, url_for('admin.productos'))
 
 
 # ── GESTIÓN DE CLIENTES ───────────────────────────────────────────
@@ -465,7 +456,7 @@ def avanzar_pedido(id):
     pedido = Pedido.query.get_or_404(id)
     if pedido.estado not in FLUJO_PEDIDO:
         flash('Este pedido no se puede avanzar.', 'warning')
-        return _redirigir_seguro(request.referrer, url_for('admin.pedidos'))
+        return redirigir_seguro(request.referrer, url_for('admin.pedidos'))
 
     indice = FLUJO_PEDIDO.index(pedido.estado)
     if indice >= len(FLUJO_PEDIDO) - 1:
@@ -474,7 +465,7 @@ def avanzar_pedido(id):
         pedido.estado = FLUJO_PEDIDO[indice + 1]
         db.session.commit()
         flash(f'Pedido #{pedido.id} actualizado a "{pedido.estado}".', 'success')
-    return _redirigir_seguro(request.referrer, url_for('admin.pedidos'))
+    return redirigir_seguro(request.referrer, url_for('admin.pedidos'))
 
 
 @admin_bp.route('/pedidos/<int:id>/confirmar-pago', methods=['POST'])
@@ -484,28 +475,32 @@ def confirmar_pago(id):
     pedido = Pedido.query.get_or_404(id)
     if pedido.estado not in ('en_verificacion', 'rechazado'):
         flash('Este pedido no está a la espera de confirmación de pago.', 'warning')
-        return _redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
+        return redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
 
-    # Revalidar stock antes de descontar (pudo cambiar desde que se hizo el pedido)
-    faltantes = []
+    # Unidades necesarias por producto (una pieza puede estar en varias líneas)
     necesario = {}
     for d in pedido.detalles:
         if d.producto:
             necesario[d.producto] = necesario.get(d.producto, 0) + d.cantidad
-    for producto, cantidad in necesario.items():
-        if producto.stock < cantidad:
-            faltantes.append(f'{producto.nombre} (disponible {producto.stock}, requiere {cantidad})')
-    if faltantes:
-        flash('No se puede confirmar: sin stock suficiente de ' + ', '.join(faltantes) + '.', 'danger')
-        return _redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
 
-    # Descontar stock y marcar como pagado
+    # Descuento atómico: UPDATE ... WHERE stock >= cantidad. Si alguna fila no se
+    # actualiza (rowcount 0) es que no había stock, y se revierte todo.
+    descontados = []
     for producto, cantidad in necesario.items():
-        producto.stock -= cantidad
+        filas = (Producto.query
+                 .filter(Producto.id == producto.id, Producto.stock >= cantidad)
+                 .update({Producto.stock: Producto.stock - cantidad},
+                         synchronize_session=False))
+        if filas == 0:
+            db.session.rollback()
+            flash(f'No se puede confirmar: sin stock suficiente de "{producto.nombre}".', 'danger')
+            return redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
+        descontados.append(producto)
+
     pedido.estado = 'pagado'
     db.session.commit()
     flash(f'Pago del pedido #{pedido.id} confirmado. Stock descontado.', 'success')
-    return _redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
+    return redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
 
 
 @admin_bp.route('/pedidos/<int:id>/rechazar-pago', methods=['POST'])
@@ -519,7 +514,7 @@ def rechazar_pago(id):
         pedido.estado = 'rechazado'
         db.session.commit()
         flash(f'Comprobante del pedido #{pedido.id} rechazado. El cliente puede subir otro.', 'info')
-    return _redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
+    return redirigir_seguro(request.referrer, url_for('admin.detalle_pedido', id=id))
 
 
 @admin_bp.route('/pedidos/<int:id>/cancelar', methods=['POST'])
@@ -538,4 +533,4 @@ def cancelar_pedido(id):
         pedido.estado = 'cancelado'
         db.session.commit()
         flash(f'Pedido #{pedido.id} cancelado.', 'info')
-    return _redirigir_seguro(request.referrer, url_for('admin.pedidos'))
+    return redirigir_seguro(request.referrer, url_for('admin.pedidos'))

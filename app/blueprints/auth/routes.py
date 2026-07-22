@@ -1,18 +1,10 @@
-from urllib.parse import urlparse
 from flask import render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import Usuario, Producto
+from app.utils import es_url_local
 from app.blueprints.auth import auth_bp
 from app.blueprints.auth.forms import FormRegistro, FormLogin
-
-
-def _es_url_segura(destino):
-    """Evita open redirect: solo acepta rutas locales del propio sitio."""
-    if not destino:
-        return False
-    ref = urlparse(destino)
-    return not ref.netloc and not ref.scheme
 
 
 # ── REGISTRO ──────────────────────────────────────────────────────
@@ -72,7 +64,7 @@ def login():
 
             # Redirigir a la página que intentaba visitar (solo si es local)
             next_page = request.args.get('next')
-            if not _es_url_segura(next_page):
+            if not es_url_local(next_page):
                 next_page = None
 
             # Redirigir según rol

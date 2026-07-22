@@ -27,16 +27,9 @@
       </div>
 
       <!-- Badge de estado -->
-      <span class="badge fs-6
-        {% if pedido.estado == 'en_verificacion' %} bg-info    text-dark
-        {% elif pedido.estado == 'pagado'        %} bg-primary
-        {% elif pedido.estado == 'enviado'       %} bg-primary
-        {% elif pedido.estado == 'entregado'     %} bg-success
-        {% elif pedido.estado == 'rechazado'     %} bg-warning text-dark
-        {% elif pedido.estado == 'cancelado'     %} bg-danger
-        {% endif %}">
-        {% set etiquetas = {'en_verificacion':'En verificación','pagado':'Pagado','enviado':'Enviado','entregado':'Entregado','rechazado':'Comprobante rechazado','cancelado':'Cancelado'} %}
-        {{ etiquetas.get(pedido.estado, pedido.estado) }}
+      <span class="badge fs-6 bg-{{ estado_colores.get(pedido.estado, 'secondary') }}
+        {{ 'text-dark' if estado_colores.get(pedido.estado) in ['info','warning'] else '' }}">
+        {{ estado_etiquetas.get(pedido.estado, pedido.estado) }}
       </span>
 
     </div>
@@ -125,14 +118,14 @@
         <!-- Progreso visual del estado -->
         <div class="d-flex gap-2 align-items-center flex-wrap">
 
-          {% set estados = ['pendiente', 'pagado', 'enviado', 'entregado'] %}
-          {% set orden_actual = estados.index(pedido.estado)
-                                if pedido.estado in estados else -1 %}
+          {% set iconos = {'en_verificacion':'bi-hourglass-split','pagado':'bi-credit-card','enviado':'bi-truck','entregado':'bi-check-circle'} %}
+          {% set orden_actual = linea_tiempo.index(pedido.estado)
+                                if pedido.estado in linea_tiempo else -1 %}
 
-          {% for estado in estados %}
+          {% for estado in linea_tiempo %}
             {% set orden = loop.index0 %}
             <span class="badge rounded-pill
-              {% if pedido.estado == 'cancelado' %}
+              {% if pedido.estado in ['cancelado', 'rechazado'] %}
                 bg-light text-muted border
               {% elif orden < orden_actual %}
                 bg-success
@@ -141,11 +134,7 @@
               {% else %}
                 bg-light text-muted border
               {% endif %}">
-              {% if estado == 'pendiente'  %} <i class="bi bi-hourglass-split"></i> Pendiente
-              {% elif estado == 'pagado'   %} <i class="bi bi-credit-card"></i> Pagado
-              {% elif estado == 'enviado'  %} <i class="bi bi-truck"></i> Enviado
-              {% elif estado == 'entregado'%} <i class="bi bi-check-circle"></i> Entregado
-              {% endif %}
+              <i class="bi {{ iconos.get(estado, '') }}"></i> {{ estado_etiquetas.get(estado, estado) }}
             </span>
 
             {% if not loop.last %}
@@ -156,6 +145,8 @@
 
           {% if pedido.estado == 'cancelado' %}
             <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Cancelado</span>
+          {% elif pedido.estado == 'rechazado' %}
+            <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Rechazado</span>
           {% endif %}
 
         </div>

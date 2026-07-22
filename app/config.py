@@ -3,8 +3,21 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+_DEBUG = os.getenv('FLASK_DEBUG', '0') == '1'
+
+
 class Config:
-    SECRET_KEY = os.getenv('SECRET_KEY','dev-secret')
+    # En producción (sin FLASK_DEBUG) la SECRET_KEY es obligatoria: si falta,
+    # la app no arranca (una clave conocida permitiría falsificar sesiones).
+    SECRET_KEY = os.getenv('SECRET_KEY')
+    if not SECRET_KEY:
+        if _DEBUG:
+            SECRET_KEY = 'dev-secret'
+        else:
+            raise RuntimeError(
+                'Falta SECRET_KEY. Defínela en el .env para producción '
+                '(genera una con: python -c "import secrets; print(secrets.token_hex(32))").'
+            )
     #Configuración de la BD
     SQLALCHEMY_DATABASE_URI = (
         f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
