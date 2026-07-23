@@ -1,0 +1,33 @@
+{# Tarjetas del equipo desarrollador (única fuente de nombres, fotos y correos).
+   equipo_estilo: 'enlace' (por defecto) muestra el correo como enlace;
+                  'boton' muestra un botón "Escribirme" + el correo debajo. #}
+{% set _estilo = equipo_estilo | default('enlace') %}
+{% set _equipo = [
+  {'nombre': 'Gabriel Toaquiza', 'foto': 'gabriel.jpg', 'correo': 'gtoaquizac@est.ups.edu.ec'},
+  {'nombre': 'Juan Pacheco',     'foto': 'juan.jpg',    'correo': 'jpachecon1@est.ups.edu.ec'},
+  {'nombre': 'Angelo Navarrete', 'foto': 'angelo.jpg',  'correo': 'anavarretev2@est.ups.edu.ec'}
+] %}
+<div class="row g-4 mb-5">
+  {% for m in _equipo %}
+  <div class="col-md-4">
+    <div class="card h-100 text-center">
+      <div class="card-body">
+        <img src="{{ url_for('static', filename='img/equipo/' + m.foto) }}"
+             alt="{{ m.nombre }}" class="foto-equipo mb-3">
+        <h6 class="fw-bold mb-0">{{ m.nombre }}</h6>
+        <small class="text-muted d-block mb-2">Desarrollador</small>
+        {% if _estilo == 'boton' %}
+          <a href="mailto:{{ m.correo }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-envelope"></i> Escribirme
+          </a>
+          <div class="small text-muted mt-2">{{ m.correo }}</div>
+        {% else %}
+          <a href="mailto:{{ m.correo }}" class="small text-primary text-decoration-none">
+            <i class="bi bi-envelope"></i> {{ m.correo }}
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>

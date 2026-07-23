@@ -1,0 +1,24 @@
+{# Datos de la cuenta para transferencias. Requiere `datos_banco` en el contexto
+   (viene de current_app.config['DATOS_BANCARIOS']). Incluye el botón de copiar. #}
+<ul class="list-unstyled small mb-0">
+  <li class="d-flex justify-content-between border-bottom py-1">
+    <span class="text-muted">Banco</span><span class="fw-semibold">{{ datos_banco.banco }}</span></li>
+  <li class="d-flex justify-content-between border-bottom py-1">
+    <span class="text-muted">Tipo</span><span class="fw-semibold">{{ datos_banco.tipo }}</span></li>
+  <li class="d-flex justify-content-between border-bottom py-1">
+    <span class="text-muted">Cuenta</span>
+    <span class="fw-semibold">
+      <span id="num-cuenta">{{ datos_banco.numero }}</span>
+      <button type="button" class="btn btn-sm btn-link p-0 ms-1"
+              onclick="navigator.clipboard.writeText(document.getElementById('num-cuenta').textContent.trim())"
+              title="Copiar número de cuenta">
+        <i class="bi bi-clipboard"></i>
+      </button>
+    </span></li>
+  <li class="d-flex justify-content-between border-bottom py-1">
+    <span class="text-muted">Titular</span><span class="fw-semibold">{{ datos_banco.titular }}</span></li>
+  <li class="d-flex justify-content-between border-bottom py-1">
+    <span class="text-muted">CI/RUC</span><span class="fw-semibold">{{ datos_banco.cedula }}</span></li>
+  <li class="d-flex justify-content-between py-1">
+    <span class="text-muted">Correo</span><span class="fw-semibold">{{ datos_banco.correo }}</span></li>
+</ul>

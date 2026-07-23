@@ -28,6 +28,22 @@ def _categoria_mas_vendida():
     return fila
 
 
+def _resumen_carrito(carrito):
+    """Devuelve (items, total) a partir del carrito normalizado."""
+    items = []
+    total = 0
+    for clave, linea in carrito.items():
+        producto = db.session.get(Producto, linea['producto_id'])
+        if producto and producto.activo:
+            subtotal = producto.precio * linea['cantidad']
+            total   += subtotal
+            items.append({'producto': producto,
+                          'cantidad': linea['cantidad'],
+                          'especificaciones': linea['especificaciones'],
+                          'subtotal': subtotal})
+    return items, total
+
+
 # ── HOME ──────────────────────────────────────────────────────────
 @public_bp.route('/')
 def home():
@@ -308,22 +324,6 @@ def pago():
                            datos_banco=current_app.config['DATOS_BANCARIOS'])
 
 
-def _resumen_carrito(carrito):
-    """Devuelve (items, total) a partir del carrito normalizado."""
-    items = []
-    total = 0
-    for clave, linea in carrito.items():
-        producto = db.session.get(Producto, linea['producto_id'])
-        if producto and producto.activo:
-            subtotal = producto.precio * linea['cantidad']
-            total   += subtotal
-            items.append({'producto': producto,
-                          'cantidad': linea['cantidad'],
-                          'especificaciones': linea['especificaciones'],
-                          'subtotal': subtotal})
-    return items, total
-
-
 # ── CONFIRMACIÓN ──────────────────────────────────────────────────
 @public_bp.route('/confirmacion/<int:id>')
 @login_required
@@ -389,13 +389,13 @@ def mis_pedidos():
     return render_template('public/mis_pedidos.html', pedidos=pedidos)
 
 
-# ── ACERCA DE ─────────────────────────────────────────────────────
+# ── NOSOTROS ──────────────────────────────────────────────────────
 @public_bp.route('/nosotros')
 def nosotros():
     return render_template('public/nosotros.html')
 
 
-# ── PÁGINAS INFORMATIVAS (solo banner por ahora) ──────────────────
+# ── PÁGINAS INFORMATIVAS ──────────────────────────────────────────
 @public_bp.route('/contacto')
 def contacto():
     return render_template('public/contacto.html')
