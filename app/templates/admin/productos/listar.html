@@ -1,15 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 {% block title %}Productos{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Productos</h2>
-    <div>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">← Panel</a>
-        <a href="{{ url_for('admin.crear_producto') }}" class="btn btn-primary btn-sm">+ Nuevo producto</a>
-    </div>
+<div class="admin-page-head">
+    <h2>Productos</h2>
+    <a href="{{ url_for('admin.crear_producto') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nuevo producto
+    </a>
 </div>
 
+<div class="admin-card p-3 p-md-4">
 <!-- Filtros -->
 <form method="GET" class="row g-2 align-items-end mb-3">
     <div class="col-md-4">
@@ -96,24 +96,26 @@
                 {% endif %}
             </td>
             <td class="text-end">
-                <a href="{{ url_for('admin.editar_producto', id=p.id) }}"
-                   class="btn btn-sm btn-outline-primary">Editar</a>
-                <form action="{{ url_for('admin.toggle_producto', id=p.id) }}"
-                      method="POST" class="d-inline"
-                      onsubmit="return confirm('¿Seguro que deseas {{ 'desactivar' if p.activo else 'activar' }} este producto?');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    {% if p.activo %}
-                        <button class="btn btn-sm btn-outline-danger">Desactivar</button>
-                    {% else %}
-                        <button class="btn btn-sm btn-outline-success">Activar</button>
-                    {% endif %}
-                </form>
-                <button type="button" class="btn btn-sm btn-danger"
-                        data-bs-toggle="modal" data-bs-target="#modalEliminar"
-                        data-url="{{ url_for('admin.eliminar_producto', id=p.id) }}"
-                        data-nombre="{{ p.nombre }}" title="Eliminar">
-                    <i class="bi bi-trash"></i>
-                </button>
+                <div class="d-inline-flex gap-1 align-items-center">
+                    <a href="{{ url_for('admin.editar_producto', id=p.id) }}"
+                       class="btn btn-sm btn-outline-primary">Editar</a>
+                    <form action="{{ url_for('admin.toggle_producto', id=p.id) }}"
+                          method="POST"
+                          onsubmit="return confirm('¿Seguro que deseas {{ 'desactivar' if p.activo else 'activar' }} este producto?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if p.activo %}
+                            <button class="btn btn-sm btn-outline-danger">Desactivar</button>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-success">Activar</button>
+                        {% endif %}
+                    </form>
+                    <button type="button" class="btn btn-sm btn-danger"
+                            data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                            data-url="{{ url_for('admin.eliminar_producto', id=p.id) }}"
+                            data-nombre="{{ p.nombre }}" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
             </td>
         </tr>
         {% endfor %}
@@ -126,6 +128,7 @@
 <p class="text-muted">No hay productos registrados.
    <a href="{{ url_for('admin.crear_producto') }}">Crea el primero</a>.</p>
 {% endif %}
+</div>
 
 {% include 'admin/_modal_eliminar.html' %}
 {% endblock %}

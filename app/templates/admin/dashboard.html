@@ -1,146 +1,148 @@
-{% extends 'base.html' %}
-{% block title %}Panel de administración{% endblock %}
+{% extends 'admin/base_admin.html' %}
+{% block title %}Panel · Verova{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Panel de administración</h2>
-
-<!-- Menú de navegación del panel -->
-<div class="mb-4">
-    <a href="{{ url_for('admin.categorias') }}" class="btn btn-outline-dark btn-sm">Categorías</a>
-    <a href="{{ url_for('admin.productos') }}" class="btn btn-outline-dark btn-sm">Productos</a>
-    <a href="{{ url_for('admin.clientes') }}" class="btn btn-outline-dark btn-sm">Clientes</a>
-    <a href="{{ url_for('admin.pedidos') }}" class="btn btn-outline-dark btn-sm">Pedidos</a>
+<div class="admin-page-head">
+  <div>
+    <h2 class="mb-1">Panel de administración</h2>
+    <p class="text-muted mb-0 small">Resumen general de la tienda</p>
+  </div>
 </div>
 
-<!-- Métricas principales -->
+<!-- ===== Tarjetas de métricas ===== -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card text-bg-success h-100">
-            <div class="card-body">
-                <h6 class="card-title">Ventas totales</h6>
-                <p class="display-6 mb-0">${{ '%.2f'|format(ventas_totales) }}</p>
-            </div>
-        </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div class="stat-icon verde"><i class="bi bi-cash-stack"></i></div>
+      <div class="stat-valor">${{ '%.2f'|format(ventas_totales) }}</div>
+      <div class="stat-label">Ventas totales</div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-bg-primary h-100">
-            <div class="card-body">
-                <h6 class="card-title">Pedidos totales</h6>
-                <p class="display-6 mb-0">{{ total_pedidos }}</p>
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div class="stat-icon azul"><i class="bi bi-bag"></i></div>
+      <div class="stat-valor">{{ total_pedidos }}</div>
+      <div class="stat-label">Pedidos totales</div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-bg-warning h-100">
-            <div class="card-body">
-                <h6 class="card-title">Pedidos pendientes</h6>
-                <p class="display-6 mb-0">{{ pedidos_pendientes }}</p>
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div class="stat-icon vino"><i class="bi bi-people"></i></div>
+      <div class="stat-valor">{{ total_clientes }}</div>
+      <div class="stat-label">Clientes</div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-bg-danger h-100">
-            <div class="card-body">
-                <h6 class="card-title">Bajo stock (≤ {{ stock_minimo }})</h6>
-                <p class="display-6 mb-0">{{ productos_bajo_stock|length }}</p>
-            </div>
-        </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div class="stat-icon ambar"><i class="bi bi-hourglass-split"></i></div>
+      <div class="stat-valor">{{ pedidos_pendientes }}</div>
+      <div class="stat-label">Por verificar</div>
     </div>
-</div>
-
-<!-- Métricas secundarias -->
-<div class="row g-3 mb-4">
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Clientes registrados</h6>
-                <p class="h3 mb-0">{{ total_clientes }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Productos activos</h6>
-                <p class="h3 mb-0">{{ total_productos }}</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body text-center">
-                <h6 class="text-muted">Categorías</h6>
-                <p class="h3 mb-0">{{ total_categorias }}</p>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
 
 <div class="row g-4">
-    <!-- Productos con bajo stock -->
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header">Productos con bajo stock</div>
-            <div class="card-body p-0">
-                {% if productos_bajo_stock %}
-                <table class="table table-sm table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Categoría</th>
-                            <th class="text-end">Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in productos_bajo_stock %}
-                        <tr>
-                            <td>{{ p.nombre }}</td>
-                            <td>{{ p.categoria.nombre if p.categoria else '—' }}</td>
-                            <td class="text-end">
-                                <span class="badge bg-danger">{{ p.stock }}</span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <p class="text-muted p-3 mb-0">No hay productos con bajo stock. <i class="bi bi-check-circle text-success"></i></p>
-                {% endif %}
-            </div>
-        </div>
+  <!-- ===== Pedidos recientes ===== -->
+  <div class="col-lg-8">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <span>Pedidos recientes</span>
+        <a href="{{ url_for('admin.pedidos') }}" class="small text-decoration-none text-primary">Ver todos</a>
+      </div>
+      {% if ultimos_pedidos %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th class="ps-3">Pedido</th>
+              <th>Cliente</th>
+              <th>Fecha</th>
+              <th class="text-end">Total</th>
+              <th class="text-center pe-3">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pedido in ultimos_pedidos %}
+            <tr>
+              <td class="ps-3 fw-semibold">
+                <a href="{{ url_for('admin.detalle_pedido', id=pedido.id) }}"
+                   class="text-decoration-none text-primary">#{{ pedido.id }}</a>
+              </td>
+              <td>{{ pedido.cliente.nombre if pedido.cliente else '—' }}</td>
+              <td class="text-muted small">{{ pedido.fecha.strftime('%d/%m/%Y') if pedido.fecha else '—' }}</td>
+              <td class="text-end">${{ '%.2f'|format(pedido.total) }}</td>
+              <td class="text-center pe-3">
+                <span class="badge bg-{{ estado_colores.get(pedido.estado, 'secondary') }}">
+                  {{ estado_etiquetas.get(pedido.estado, pedido.estado) }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted p-4 mb-0 text-center">Aún no hay pedidos.</p>
+      {% endif %}
     </div>
+  </div>
 
-    <!-- Últimos pedidos -->
-    <div class="col-lg-6">
-        <div class="card">
-            <div class="card-header">Últimos pedidos</div>
-            <div class="card-body p-0">
-                {% if ultimos_pedidos %}
-                <table class="table table-sm table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Cliente</th>
-                            <th>Estado</th>
-                            <th class="text-end">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for pedido in ultimos_pedidos %}
-                        <tr>
-                            <td>{{ pedido.id }}</td>
-                            <td>{{ pedido.cliente.nombre if pedido.cliente else '—' }}</td>
-                            <td><span class="badge bg-secondary">{{ pedido.estado }}</span></td>
-                            <td class="text-end">${{ '%.2f'|format(pedido.total) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <p class="text-muted p-3 mb-0">Aún no hay pedidos.</p>
-                {% endif %}
+  <!-- ===== Alertas de inventario ===== -->
+  <div class="col-lg-4">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <span>Alertas de inventario</span>
+        <a href="{{ url_for('admin.productos', stock='bajo') }}" class="small text-decoration-none text-primary">Ver</a>
+      </div>
+      <div class="p-2">
+        {% if productos_bajo_stock %}
+          {% for p in productos_bajo_stock %}
+          <div class="d-flex align-items-center gap-3 p-2 rounded-3 alerta-item">
+            {% if p.imagen %}
+              <img src="{{ url_for('static', filename='img/' + p.imagen) }}"
+                   width="42" height="42" style="object-fit:cover;" class="rounded">
+            {% else %}
+              <div class="rounded d-flex align-items-center justify-content-center text-muted"
+                   style="width:42px;height:42px;background:#f2f0f3;"><i class="bi bi-box"></i></div>
+            {% endif %}
+            <div class="flex-grow-1 min-w-0">
+              <div class="fw-semibold text-truncate" style="max-width:150px;">{{ p.nombre }}</div>
+              <div class="text-muted small">Stock bajo</div>
             </div>
-        </div>
+            <span class="badge {{ 'bg-danger' if p.stock == 0 else 'bg-warning text-dark' }}">
+              {{ p.stock }} und
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-muted p-3 mb-0 text-center">
+            <i class="bi bi-check-circle text-success"></i> Todo el stock está en orden.
+          </p>
+        {% endif %}
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- ===== Métricas secundarias ===== -->
+<div class="row g-3 mt-1">
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div class="stat-valor">{{ total_productos }}</div>
+      <div class="stat-label">Productos activos</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div class="stat-valor">{{ total_categorias }}</div>
+      <div class="stat-label">Categorías activas</div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="stat-tile">
+      <div class="stat-valor">{{ productos_bajo_stock|length }}</div>
+      <div class="stat-label">Bajo stock (≤ {{ stock_minimo }})</div>
+    </div>
+  </div>
 </div>
 {% endblock %}

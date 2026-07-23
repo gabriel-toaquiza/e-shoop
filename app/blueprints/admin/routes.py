@@ -9,6 +9,7 @@ from app import db
 from app.models import Usuario, Categoria, Producto, Pedido
 from app.estados import (ESTADOS_VENTA, FLUJO_PEDIDO, ESTADOS_POR_VERIFICAR)
 from app.utils import redirigir_seguro
+from app.blueprints.public.pagos_utils import eliminar_comprobante
 from . import admin_bp
 from .decorators import admin_requerido
 from .forms import FormCategoria, FormProducto
@@ -534,3 +535,26 @@ def cancelar_pedido(id):
         db.session.commit()
         flash(f'Pedido #{pedido.id} cancelado.', 'info')
     return redirigir_seguro(request.referrer, url_for('admin.pedidos'))
+
+
+@admin_bp.route('/pedidos/<int:id>/eliminar', methods=['POST'])
+@login_required
+@admin_requerido
+def eliminar_pedido(id):
+    pedido = Pedido.query.get_or_404(id)
+
+    # Reponer stock si el pedido lo había descontado (pagado/enviado/entregado)
+    if pedido.estado in ESTADOS_VENTA:
+        for d in pedido.detalles:
+            if d.producto:
+                d.producto.stock += d.cantidad
+
+    # Borrar el comprobante del disco (si tiene)
+    eliminar_comprobante(pedido.comprobante)
+
+    numero = pedido.id
+    db.session.delete(pedido)   # cascade elimina las líneas de detalle
+    db.session.commit()
+    flash(f'Pedido #{numero} eliminado del historial.', 'success')
+    # Si el borrado vino del detalle del pedido, ese detalle ya no existe → ir a la lista
+    return redirect(url_for('admin.pedidos'))

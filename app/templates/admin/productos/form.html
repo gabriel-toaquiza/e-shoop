@@ -1,11 +1,16 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 {% block title %}{{ titulo }}{% endblock %}
 
 {% block content %}
+<div class="admin-page-head">
+    <h2>{{ titulo }}</h2>
+    <a href="{{ url_for('admin.productos') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Productos
+    </a>
+</div>
 <div class="row justify-content-center">
-    <div class="col-md-7">
-        <h2 class="mb-4">{{ titulo }}</h2>
-
+    <div class="col-lg-8">
+        <div class="admin-card p-4">
         <form method="POST" enctype="multipart/form-data" novalidate>
             {{ form.hidden_tag() }}
 
@@ -127,6 +132,7 @@
                 <a href="{{ url_for('admin.productos') }}" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
+        </div>
     </div>
 </div>
 {% endblock %}

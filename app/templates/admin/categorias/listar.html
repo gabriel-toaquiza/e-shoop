@@ -1,15 +1,15 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 {% block title %}Categorías{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Categorías</h2>
-    <div>
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">← Panel</a>
-        <a href="{{ url_for('admin.crear_categoria') }}" class="btn btn-primary btn-sm">+ Nueva categoría</a>
-    </div>
+<div class="admin-page-head">
+    <h2>Categorías</h2>
+    <a href="{{ url_for('admin.crear_categoria') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Nueva categoría
+    </a>
 </div>
 
+<div class="admin-card p-3 p-md-4">
 <!-- Filtros -->
 <form method="GET" class="row g-2 align-items-end mb-3">
     <div class="col-md-6">
@@ -70,24 +70,26 @@
                 {% endif %}
             </td>
             <td class="text-end">
-                <a href="{{ url_for('admin.editar_categoria', id=c.id) }}"
-                   class="btn btn-sm btn-outline-primary">Editar</a>
-                <form action="{{ url_for('admin.toggle_categoria', id=c.id) }}"
-                      method="POST" class="d-inline"
-                      onsubmit="return confirm('¿Seguro que deseas {{ 'desactivar' if c.activa else 'activar' }} esta categoría?');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    {% if c.activa %}
-                        <button class="btn btn-sm btn-outline-danger">Desactivar</button>
-                    {% else %}
-                        <button class="btn btn-sm btn-outline-success">Activar</button>
-                    {% endif %}
-                </form>
-                <button type="button" class="btn btn-sm btn-danger"
-                        data-bs-toggle="modal" data-bs-target="#modalEliminar"
-                        data-url="{{ url_for('admin.eliminar_categoria', id=c.id) }}"
-                        data-nombre="{{ c.nombre }}" title="Eliminar">
-                    <i class="bi bi-trash"></i>
-                </button>
+                <div class="d-inline-flex gap-1 align-items-center">
+                    <a href="{{ url_for('admin.editar_categoria', id=c.id) }}"
+                       class="btn btn-sm btn-outline-primary">Editar</a>
+                    <form action="{{ url_for('admin.toggle_categoria', id=c.id) }}"
+                          method="POST"
+                          onsubmit="return confirm('¿Seguro que deseas {{ 'desactivar' if c.activa else 'activar' }} esta categoría?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if c.activa %}
+                            <button class="btn btn-sm btn-outline-danger">Desactivar</button>
+                        {% else %}
+                            <button class="btn btn-sm btn-outline-success">Activar</button>
+                        {% endif %}
+                    </form>
+                    <button type="button" class="btn btn-sm btn-danger"
+                            data-bs-toggle="modal" data-bs-target="#modalEliminar"
+                            data-url="{{ url_for('admin.eliminar_categoria', id=c.id) }}"
+                            data-nombre="{{ c.nombre }}" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
             </td>
         </tr>
         {% endfor %}
@@ -100,6 +102,7 @@
 <p class="text-muted">No hay categorías registradas.
    <a href="{{ url_for('admin.crear_categoria') }}">Crea la primera</a>.</p>
 {% endif %}
+</div>
 
 {% include 'admin/_modal_eliminar.html' %}
 {% endblock %}

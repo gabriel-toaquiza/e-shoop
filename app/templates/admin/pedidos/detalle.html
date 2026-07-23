@@ -1,15 +1,18 @@
-{% extends 'base.html' %}
+{% extends 'admin/base_admin.html' %}
 {% block title %}Pedido #{{ pedido.id }}{% endblock %}
 
 {% block content %}
 {% set colores = estado_colores %}
 {% set etiquetas = estado_etiquetas %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Pedido #{{ pedido.id }}</h2>
-    <a href="{{ url_for('admin.pedidos') }}" class="btn btn-outline-secondary btn-sm">← Pedidos</a>
+<div class="admin-page-head">
+    <h2>Pedido #{{ pedido.id }}</h2>
+    <a href="{{ url_for('admin.pedidos') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Pedidos
+    </a>
 </div>
 
+<div class="admin-card p-3 p-md-4">
 <div class="row mb-4">
     <div class="col-md-6">
         <p class="mb-1"><strong>Cliente:</strong> {{ pedido.cliente.nombre if pedido.cliente else '—' }}</p>
@@ -105,5 +108,15 @@
         <button class="btn btn-outline-danger">Cancelar pedido</button>
     </form>
     {% endif %}
+
+    <button type="button" class="btn btn-danger ms-auto"
+            data-bs-toggle="modal" data-bs-target="#modalEliminar"
+            data-url="{{ url_for('admin.eliminar_pedido', id=pedido.id) }}"
+            data-nombre="el pedido #{{ pedido.id }} (esta acción no se puede deshacer)">
+        <i class="bi bi-trash"></i> Eliminar pedido
+    </button>
 </div>
+</div>
+
+{% include 'admin/_modal_eliminar.html' %}
 {% endblock %}

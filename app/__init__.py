@@ -24,10 +24,11 @@ def create_app():
     login_manager.login_message = 'Inicia sesión para continuar'
     login_manager.login_message_category = 'warning'
 
-    # Modelos
-    from app.models import Usuario, Categoria, Producto, Pedido, DetallePedido
+    # Importar los modelos registra todas las tablas (Usuario, Categoria,
+    # Producto, Pedido, DetallePedido) en SQLAlchemy antes de las migraciones.
+    from app.models import Usuario
 
-    # User loader: 
+    # User loader:
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(Usuario, int(user_id))
